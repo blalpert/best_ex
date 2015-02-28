@@ -22,6 +22,7 @@ The only things you need to reproduce our work are a couple of free, open-source
 
 You can download these files from the TK github repository. Please copy them to your computer's top-level directory. On Windows, the archive's directory should then look like **"C:/rule605/..."**, while on a Mac it should look like **"~/rule605/..."**. We tried to write all scripts so that they'll run on either Windows or Mac, but we did our work on Windows and haven't tested them thoroughly on a Mac -- so they surely need some tweaks to work there.
 
+```
 The archive's directory structure looks like this:
 
       rule605/
@@ -45,6 +46,7 @@ The archive's directory structure looks like this:
                     form605_makefile.R
                     form605_merge_data.R
                     install_packages.R
+```
 
 In the directory **"./rule605/data/f605\_data"**, we include a sample file of [CITADEL] data **"sample\_rule605\_data.dat"**, in the standard comma-separated values format that Rule 605 requires. You can replace this file with the raw, uncompressed data from any Rule 605-filing firm that you want to analyze (except for those that use idiosynchratic formats, of whom we've so far discovered the NYSE's Archepelago and Interactive Brokers). We wrote our code to analyze one firm's filings at a time, so you should only fill this directory with files from one firm at a time. You can load it with as many months' files as you like.
 
