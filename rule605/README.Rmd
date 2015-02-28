@@ -1,0 +1,98 @@
+---
+title: "README"
+author: "Bill Alpert, Barron's, william.alpert@barrons.com, 1.212.416.2742"
+date: "Friday, February 27, 2015"
+output: 
+  md_document:
+    variant: markdown_github
+---
+
+
+# DISCLAIMER:
+
+DISCLAIMER: Barron's is sharing these files as pieces of journalism, in an attempt to make our reporting more transparent and our research reproducible.  We wrote them with care, but Dow Jones provides them as is and makes no guarantees.
+
+
+# BARRON'S PROJECT ON EXECUTION QUALITY
+
+These files supplement the March 2, 2015 [Barron's story][BOL]on execution quality, **"The Little Guy Wins!"** They should allow you to check our work. The code and sample data files in this "replication" archive are like the files we shared with the companies we analyze in the story. In preparing the data-driven story, we tried a novel reporting approach that we call **"preplication"** to get companies' comments on our computer analysis *before* publication.  The preplication procedures are inspired by the replication methods used by scientists to make their work reproducible *after* publication. Now that we're publishing the resulting story, these files become replication files for our readers and the world.
+
+The scripts let you exactly reproduce our processing of raw Rule 605 reports and the calculations used in our study of the market makers who serve the largest discount stockbrokers. You can scrutinize sample raw data and every step in our analysis. The scripts also produce a browser-readable report with graphs and tables that explain how we arrived at our results.
+
+We provide these materials *"as-is"*.  Be aware that there can be frequent changes in the required open-source software "R". But you are welcome to look for errors or improve upon our work.  You will at least see how careful we've been in our reporting.
+
+### What You Need to Run the Replication Files
+
+The only things you need to reproduce our work are a couple of free, open-source software products called **R** and **RStudio**. These software packages are used by scientists and technical workers around the world to perform statistical work --- they're among the most beautiful and powerful pieces of software you'll ever encounter.  You can download them at [R](cran.r-project.org) and [RStudio](www.rstudio.com). There are versions for Windows, Mac and other operating systems. Install R, then RStudio. After you've installed both software packages, you'll run these files in RStudio.
+
+### Our Replication Files
+
+You can download these files from the TK github repository. Please copy them to your computer's top-level directory. On Windows, the archive's directory should then look like **"C:/rule605/..."**, while on a Mac it should look like **"~/rule605/..."**. We tried to write all scripts so that they'll run on either Windows or Mac, but we did our work on Windows and haven't tested them thoroughly on a Mac -- so they surely need some tweaks to work there.
+
+The archive's directory structure looks like this:
+
+```
+  rule605/
+        README.Rmd
+        README.html
+        analysis/
+            form605_write_functions.R
+            rule605_report.Rmd
+            Rule605_report.html
+            results_data/
+        data/
+            constituent_data/
+                russell1000_constituents.csv
+                Sp500constituents.csv
+                tickers_AMEX.csv
+                tickers_NASDAQ.csv
+                tickers_NYSE.csv
+            f605_data/
+                sample_rule605_data.dat
+            gather_source/
+                form605_makefile.R
+                form605_merge_data.R
+                install_packages.R
+```
+
+In the directory **"./rule605/data/f605_data"**, we include a sample file of [CITADEL] data **"sample_rule605_data.dat"**, in the standard comma-separated values format that Rule 605 requires. You can replace this file with the raw, uncompressed data from any Rule 605-filing firm that you want to analyze (except for those that use idiosynchratic formats, of whom we've so far discovered the NYSE's Archepelago and Interactive Brokers). We wrote our code to analyze one firm's filings at a time, so you should only fill this directory with files from one firm at a time. You can load it with as many months' files as you like.
+
+
+# WHAT YOU CAN DO WITH THESE FILES#
+
+### Read Any File
+
+You can open any of the **".R"** files with RStudio, read our code and improve it or just laugh at its clumsiness. We tried to lavishly document our computer scripts with the "#"-demarcated explanations that programmers call "comments."  The file **"form605_analysis.R"**, for example, performs most of the data analysis with R code that the script tries to explain as it goes along.
+
+But the real reason we're doing all this is to enable you to reproduce, correct or improve on that output. Here's how...
+
+### Replicate the Results
+
+The real magic of this replication exercise comes from reproducing our analysis as it starts with raw data files and spits out the finished browser-readable report that will appear as the file **"Rule605_report.html"** in the directory **"./rule605/analysis/"**.
+
+In the directory **"./rule605/data/gather_source"**, you'll find the two files **"install_packages.R"** and **"form605_makefile.R"**.  **If you're running the replication for the first time, open the "install_packages.R" file in RStudio** and press the **Source** button in the upper-right corner of the Source window, to download and install a useful R add-on package called **"bigvis"** which our code will use to calculate weighted medians and other measures with great speed. As of this writing, the bigvis package is not yet a part of the standard R repositories -- hence the extra step to install it. After you've installed the "bigvis" package once, you needn't run the installation script again, since the package will have become part of your R environment.
+
+To run the replication, open and click the RStudio'Source' button to run the file **"form605_makefile.R"**, where the script should rerun the entire data gathering and analysis process. It will overwrite the results files with the new calculations. You can repeat this step any time you like, to create updated results based on new Form 605 filings or any changes you make to the analytical scripts.
+
+You can see the new results most easily if you then open the file **"rule605_analysis.Rmd"** (in the directory **".rule605/analysis"**) and then press the **Knit HTML** button in the upper-leftish edge of the Source window. This will update the browser-readable **"Rule605_report.html"** with your new calculations.
+
+### Perform New Analyses
+
+Our story compared market makers' SEC Rule 605 reports for the most recent three months --- since that's the minimum range that every firm made available.  But these scripts should work on any set of *un-compressed* Form 605 files (in other words, you should "unzip" any data that you got in compressed form). The files we used in our story are large -- hundreds of megabytes, in total.  That's why we just include a sample file here, but you can replace the sample file that's in the directory **"./rule605/data/f605_data"** with as many months' raw files as you like, from any market maker or exchange that makes them publicly-available. Then repeat the process described in preceding two paragraphs (to keep the separate results for each firm, you may want to first move any **".csv"** files previously written to the directory **"/rule605/analysis/results-data"**), which preserve spreadsheet-readable records of the analysis and a formatted table of the Rule 605 data.
+
+If you know a bit of R and statistics, you can add code to the **"form605_analysis.R"** file and carry out any analysis that the Form 605 data allow. That's how reproducible research accelerates the growth of our collective knowledge.
+
+# CONTACT US
+
+If you've found this story and these files interesting, please tell us and other readers in the comments section that follows the March 2, 2015 story at [Barron's Online][BOL]
+
+You can reach the writer, Bill Alpert, at any time:
+
+william.alpert@barrons.com
+1.212.416.2742 (w)
+
+[BOL]: http://www.barrons.com
+
+```{r sessionInfo, include=TRUE, echo=TRUE, results='markup'}
+sessionInfo()
+```

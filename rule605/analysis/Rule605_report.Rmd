@@ -1,0 +1,1027 @@
+---
+title: "Rule 605 Analysis"
+author: "Bill Alpert, Barron's, william.alpert@barrons.com, 1.212.416.2742"
+date: "Friday, February 27, 2015"
+output: html_document
+---
+
+```{r echo=FALSE}
+# set the working directory, for Windows or Mac
+# os_name = Sys.info()[['sysname']]
+# if(os_name == "Windows"){
+#   setwd("C:/rule605")
+# }else if(os_name =="Darwin"){  # OS X
+#   setwd("~/rule605")
+# }else{                         # Linux
+#   stop("I'm a penguin.")
+# }
+```
+
+```{r echo=FALSE}
+# Any package required by the script below is given here
+inst_pkgs = load_pkgs = c("plyr", "dplyr", "tidyr", "ggplot2", "magrittr", "xtable", "digest", "car", "bigvis")
+
+# Check to see if the packages are already installed
+inst_pkgs = inst_pkgs[!(inst_pkgs %in% 
+                          installed.packages()[, "Package"])]
+
+# install any missing packages
+if(length(inst_pkgs)) install.packages(inst_pkgs)
+
+# Dynamically load required pacakges
+pkgs_loaded = lapply(load_pkgs, require, character.only = T)
+```
+
+
+```{r echo=FALSE} 
+# setwd("./analysis") 
+
+# objects we might need in this file
+
+load("f605_mktble_df.RData")
+load("f605_morder_ticker_df.RData")
+
+# A weighted-mean of net price-improvement, all stocks, order sizes, 
+# and both market orders and marketable limit orders...from lines 211ff of form605_analysis.R
+
+net_pi_mcaway_mean_all <- f605_mktble_df %>%
+  summarise(net_pi_mcaway_mean_all = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
+  )
+
+# weighted mean net-pi on market orders for stocks in S&P 500
+
+net_pi_mcaway_morder_sp500_mean <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == TRUE) %>%
+  summarise(net_pi_mcaway_morder_sp500_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
+  )
+
+
+# mean 'net_pi' by order type, all stocks, all order sizes, all months
+# ....lines 225ff of form605_analysis.R
+
+net_pi_mcaway_mean_type <- f605_mktble_df %>%
+  group_by(order_type) %>%
+  summarise(net_pi_mcaway_mean_type = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
+  )
+
+
+# mean 'net_pi' by order-size, all stocks, both order types, all months...lines 233ff
+
+net_pi_mcaway_mean_size <- f605_mktble_df %>%
+  group_by(order_size) %>%
+  summarise(net_pi_mcaway_mean_size = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
+  )
+
+# mean 'net_pi' for all stocks, all months, just market orders...lines 248ff
+
+net_pi_mcaway_morder_mean <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  summarise(net_pi_mcaway_morder_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
+  )
+
+# A weighted mean net_pi for market orders, using each row's executed shares as weights to the mean of
+# row-level net_pi (itself previosly weighted in proportion to the row's improved/disimproved shares)
+
+
+net_pi_mcaway_morder_wmean <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  summarise(net_pi_mcaway_morder_wmean = weighted.mean(net_pi_mcaway, mcaway_exec_shrs)
+  )
+
+# This version of the weighted mean yields the same answer as the "conventional" version on line 211.
+
+net_pi_mcaway_morder_sp500_wmean <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == TRUE) %>%
+  summarise(net_pi_mcaway_morder_sp500_wmean = weighted.mean(net_pi_mcaway, mcaway_exec_shrs)
+  )
+
+# weighted mean net_pi for non-S&P 500 stocks
+
+net_pi_mcaway_morder_notsp500_wmean <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == FALSE) %>%
+  summarise(net_pi_mcaway_morder_notsp500_wmean = weighted.mean(net_pi_mcaway, mcaway_exec_shrs)
+  )
+
+# to examine extreme values (aka outliers):
+net_pi_mcaway_top <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  arrange(desc(net_pi_mcaway)) %>%
+  head(15L)
+  
+net_pi_mcaway_bot <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  arrange(net_pi_mcaway) %>%
+  head(15L)
+
+
+
+# A weighted median by rows of net-pi for market-orders... lines 449ff
+
+net_pi_mcaway_morder_wmed <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  summarise(net_pi_mcaway_morder_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
+  )
+
+# weighted median of rows, for S&P 500 members, just market orders
+
+net_pi_mcaway_morder_sp500_wmed <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == T) %>%
+  summarise(net_pi_mcaway_morder_sp500_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
+  )
+
+# Ticker-level data frame, filtered for just S&P 500 stocks
+f605_morder_ticker_sp500_df <- f605_morder_ticker_df %>%
+  filter(in_sp500 == TRUE)
+
+# How about a weighted mean for these ticker-level groups, weighted by each ticker's mcaway_exec_shrs_t ? Is it the same as the other versions of a weighted means ?
+
+net_pi_mcaway_wmean_t <- weighted.mean(f605_morder_ticker_df$net_pi_mcaway_t, f605_morder_ticker_df$mcaway_exec_shrs_t, na.rm = T)
+
+# a weighted mean for the S&P 500 member tickers
+
+f605_morder_ticker_sp500_df <- f605_morder_ticker_df %>%
+  filter(in_sp500 == TRUE)
+
+net_pi_mcaway_sp500_wmean_t <- weighted.mean(f605_morder_ticker_sp500_df$net_pi_mcaway_t, f605_morder_ticker_sp500_df$mcaway_exec_shrs_t, na.rm = T)
+
+# A weighted-median net_pi of ticker-level groupings... lines 548ff
+net_pi_mcaway_wmed_t <- weighted.median(f605_morder_ticker_df$net_pi_mcaway_t, f605_morder_ticker_df$mcaway_exec_shrs_t, na.rm = T)
+
+
+# What's the weighted-median, net-pi for tickers in the S&P 500 ?
+
+net_pi_mcaway_sp500_wmed_t <- weighted.median(f605_morder_ticker_sp500_df$net_pi_mcaway_t, f605_morder_ticker_sp500_df$mcaway_exec_shrs_t, na.rm = T)
+
+# EFFECTIVE OVER QUOTED
+
+# Weighted MEAN EoQ....lines 715ff
+
+effective_over_quoted_morder_mcaway_wmean <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  summarise(effective_over_quoted_morder_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway),na.rm = T)
+  )
+
+
+# Weighted MEDIAN EoQ....lines 781ff
+effective_over_quoted_morder_mcaway_wmed <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  summarise(effective_over_quoted_morder_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway),na.rm = T)
+  )
+
+# Weighted MEAN EoQ, stocks in S&P 500... lines 748ff
+
+effective_over_quoted_morder_sp500_mcaway_wmean <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == TRUE) %>%
+  summarise(effective_over_quoted_morder_notsp500_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
+  )
+
+# Weighted MEAN EoQ, stocks NOT in S&P 500
+
+effective_over_quoted_morder_notsp500_mcaway_wmean <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == FALSE) %>%
+  summarise(effective_over_quoted_morder_sp500_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
+  )
+
+# Weighted MEDIAN EoQ, stocks in S&P 500... lines 815ff
+
+effective_over_quoted_morder_sp500_mcaway_wmed <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == TRUE) %>%
+  summarise(effective_over_quoted_morder_sp500_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
+  )
+
+# Weighted MEDIAN EoQ, NOT in S&P 500
+
+effective_over_quoted_morder_notsp500_mcaway_wmed <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == FALSE) %>%
+  summarise(effective_over_quoted_morder_notsp500_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
+  )
+
+```
+
+## Preamble
+
+**Dear Reader:** We're sharing these files as part of our March 2, 2015 Barron's story "The Little Guy Wins!" about the trade execution quality of Wall Street's wholesale market makers.
+
+We used this particular report to allow each firm to examine and comment on our analysis of their Rule 605 trade execution reports. That's why it's written in the second person, a style we preserve so that you can better see how we did our reporting.**
+
+# DISCLAIMER:
+
+Barron's is sharing these files as pieces of journalism, in an attempt to make our reporting more transparent and our research reproducible.  We wrote them with care, but Dow Jones provides them as is and makes no guarantees.
+
+## Introduction
+
+This document summarizes our analysis of Form 605 reports. The story that results from this analysis --- and lots of other reporting --- will probably use weighted means of the *net price-improvement* and the *effective-over-quoted* ratio to rank market makers and exchanges, and in turn, the brokers who route orders to them.  We're sharing these files with you so that you can see why I chose these measures and how I calculate them. The included raw data and and scripts should allow you to  *exactly* reproduce my analysis, using the free, open-source software that I describe in the included **"README"** file. The measures and graphics you see here are calculated from *your firm's* data.
+
+I hope that you'll use these materials to alert me to errors and to re-analyze the data any way you like.
+
+The file you're reading was created with the app *R Markdown* [^markdown] and you can recreate or update it by using the open-source software **R** [^rsoftware] and *RStudio* [^rstudio] to open the **"rule605_analysis.Rmd"** file in the **"./rule605/analysis" directory**, then clicking on the *"Knit"* button in the upper left.
+
+
+#### The Execution Quality Measures We're Thinking of Using
+
+The **volume-weighted mean of the net price-improvement per share, on market orders in S&P member stocks,listed and nasdaq, for all order sizes**, measured in cents, or aka "net cents", seem to be good measures for comparing market centers.  And the complement, for non-S&P stocks.  The weighting scheme attempts to control for firms that count price improvement for **shares executed both at the market center and away**. We'll use the last three reported months' Form 605s.
+
+On S&P500-stock market orders, your firm's weighted-mean price improvement was $`r (round(net_pi_mcaway_morder_sp500_wmean, digits = 3)) `$ cents per share, while the non-S&P price was $`r (round(net_pi_mcaway_morder_notsp500_wmean, digits = 3)) `$
+
+The other useful measures would be the **volume-and-share-weighted mean of the ratio of effective-over quoted-spread per share, on market orders in S&P member stocks**, for all order sizes, and then for non-S&P stocks.
+
+Your share-and-spread-weighted-mean E/Q was $`r (round(effective_over_quoted_morder_sp500_mcaway_wmean, digits = 3)) `$, while the non-S&P E/Q was $`r (round(effective_over_quoted_morder_notsp500_mcaway_wmean, digits = 3)) `$
+
+
+#### A QUESTION
+
+**My question for you:** Could you discuss with me the sort of orders and customers that would make net price-improvement a more helpful measure than effective-over-quoted, and vice-versa
+
+## The Data
+
+We're using Form 605 reports to compare firms' execution quality because the reports are the only data that everyone files in comparable format. Indeed, firms use those data to benchmark themselves against the competition.
+
+Unfortunately, many firms only leave the trailing three months' reports accessible to the public. So we're performing our analysis on the latest three months' reports.  You'll see that we've placed the unaltered raw data files of your last three reports in the directory **"./rule605/data/f605_data"**, decompressing them first if necessary. We combine them into a single data frame (i.e., table) for analysis with the script you'll find in the **"form605_merge_data.R"** file, which is in the **"./rule605/data/gather_source"** directory.
+
+Only two order types make sense to analyze for price-improvement: *market-orders* (which Form 605 codes as **"11"** and we've renamed **"mkt_ordr"**) and *marketable-limit-orders* (which Form 605 codes as **"12"** and we've renamed **"mktbl_lmt_ordr"**). The merge script filters out other order types, as well as any rows reporting on a stock in which the market center executed no orders in the period reported. Ultimately, we'll also filter away marktable-limit-orders and only compare firms' execution of market-orders.
+
+Because we want to control our analysis for whether stocks are listed on the NYSE or Nasdaq, or indexed in the S&P 500 or Russell 1000, you'll find membership lists of those stocks in the directory **"./rule605/data/constituent_data"**. The merge script adds columns to our data frame to indicate whether a stock shown in the Form 605 is listed on an exchange or belongs to an index.
+
+The data frame resulting from the merge script is called **f605_mktble_df**.
+
+I construct a second data frame **f605_morder_ticker_df** that aggregates rows of the first data frame by ticker, so that there's one row per ticker.
+
+
+## Analysis
+
+This comparison zeros in on *net price-improvement* (measured in cents per share) and the ratio of *effective-over-quoted* spreads.  We calculate all our measures with the script you'll find in the file **"form605_analysis.R"**, which is in the directory **"./rule605/analysis"**. If you believe we should focus on other measures, please suggest them.
+
+The merge script in the file **"form605_merge_data.R"** reads the raw form 605 filings into a data frame table. Here are the column headings that correspond to each form 605 field. 
+
+Field Number |     Field Description         |   My Table's Column Name 
+------------ | ----------------------------- | -------------------------
+F1           | Designated Participant        |   "participant"
+F2           | Market Center code            |   "market_center"
+F3           | Month and Year                |   "date"
+F4           | Ticker Symbol                 |   "ticker"
+F5           | Order Type                    |   "order_type"
+F6           | Order Size                    |   "order_size"
+F7           | Total Covered Orders          |   "total_orders"
+F8           | Total Covered Shares          |   "total_shrs"
+F9           | Cancelled Shares              |   "cancelled_shrs"
+F10          | Market Center Executed Shares |   "mc_exec_shrs"
+F11          | Away Executed Shares          |   "away_exec_shrs"
+F12          | Shares from 0 to 9 Seconds    |   "shrs_0to9sec"
+F13          | Shares from 10 to 29 Seconds  |   "shrs_10to29sec"
+F14          | Shares from 30 to 59 Seconds  |   "shrs_30to59sec"
+F15          | Shares from 60 to 299 Seconds |   "shrs_60to299sec"
+F16          | Shares from 5 to 30 Minutes   |   "shrs_5to30min"
+F17          | Average Realized Spread       |   "avg_realzd_spread"
+F18          | Average Effective Spread      |   "avg_effec_spread"
+F19          | Price Improved Shares         |   "px_improved_shrs"
+F20          | Price Improved Avg Amount     |   "px_improved_avg_amt"
+F21          | Price Improved Avg Time (Secs)|   "px_improved_avg_secs"
+F22          | At-the-Quote Shares           |   "at_quote_shrs"
+F23          | At-the-Quote Avg Time (Secs)  |   "at_quote_avg_secs"
+F24          | Outside-the-Quote Shares      |   "outside_quote_shrs"
+F25          | Outside-the-Quote Avg Amt ($) |   "outside_quote_avg_amt"
+F26          | Outside-Quote Avg Time (secs) |   "outside_quote_avg_sec"
+
+In addition to the columns from the Form 605s, I've added columns that note a stock's membership in the S&P 500 or the Russell 1000, and columns for listings on the NYSE, Nasdaq or Amex.
+
+I've tried to name the columns in ways you'll understand, but if you are confused, contact me. The raw Form 605s use arcane labels to code for the size of orders, so I re-coded the levels of the *order size* variable as: "100-499", "500-1999", "200-4999" and "5000+". I re-coded the two levels that we're considering in the *order type* variable as: "mkt_ordr" and "mktbl_lmt_ordr".
+
+The row structure of the *f605_mktble_df* data frame reflects that of the Form 605, where each row summarizes the month's orders for a particular stock, with a new row for every combination of five order types and four order sizes-- these combinations which can generate up to 20 rows per ticker. Here are a few rows and columns from the data frame:
+
+```{r,results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = TRUE)
+
+sample_table <- xtable(f605_mktble_df[1:5, c(2:6, 17:20)], type='html', caption = "Some Rows and Columns from the f605_mktble_df data frame", digits = 4)
+
+print(sample_table, type = 'html')
+```
+
+
+### Net Price-Improvement
+
+Net price-improvement (or net-pi) is one of the more useful measures you can calculate from Form 605 data and one of the easiest to explain.  I'll define net p-i as the average per-share price improvement minus the average outside-the-quote dis-improvement. The Form 605 reports these quantities in dollars, so we'll multiply by 100, to get numbers in cents as is industry convention.
+
+A widespread concern in reporting average measures of execution quality is that liquid and illiquid transactions get appropriate weight.  Since liquidity is not observable, most weighting schemes use share volume as a proxy.  For each row in our tables, we'll weight the the row-level net-pi so improvement on a bunch of shares doesn't get overly offset by dis-improvement on just a few shares, or vice-versa. Shares executed at-the-quote zero out of the result.
+
+For the f605_mktble_df table, the row-level calculation starts like this, producing what I call the 'net_pi_numerator'. Multiplying by 100 gives us the "net cents" result in pennies, not dollars. :
+
+> 100 * ((px_improved_shrs * px_improved_avg_amt) + (at_quote_shrs * 0) - (outside_quote_shrs * outside_quote_avg_amt))
+
+Each row of f605_mktble_df table puts the result in a new column with the variable 'net_pi_numerator' for each combination of ticker/order-type/order-size for the month. 
+
+So far, we just have the numerator of a weighted average. We still need to divide by a denominator that should equal the sum of the weights.
+
+Apparently, some in the industry get their denominator for a firm-wide mean net-pi by summing the column of all the executed shares in the table. This "industry-standard" approach can be conveniently done in a spreadsheet or database management program, but it discards information and doesn't allow convenient computation of a median or other essential estimators of price-improvement distribution across stocks/order-types/order-sizes --  such as a standard deviation or quantiles.
+
+A row-level net-pi would use a denominator of that row's executed shares. Dividing the numerator by this denominator gives us the share-weighted mean of the per-share price-improvements and dis-improvements, for all that period's transactions in a stock within a particular order-type or -size. 
+
+> 100 * ((px_improved_shrs * px_improved_avg_amt) - (outside_quote_shrs * outside_quote_avg_amt)) / mcaway_exec_shrs
+
+Because we're doing a row-wise calculation, each ticker can yield up to 20 of these weighted averages. I put these in a new column variable that I call **net_pi_mcaway**.
+
+These row-level net-pi values can then be used to compute firm-wide averages. I'll do that, but I'll also calculate a firm-wide average using the industry-standard approach to a weighted mean.
+
+Both ways of calculating firm-wide averages incorporate two levels of weighting. First, the row-weighted average net-pi that gives appropriate weights to improved and disimproved shares, respectively.  Second, the column-wise weighting of all the row-level net-pi's, with the weights being each row's executed share volume, so that high-volume rows get more weight. 
+
+As an important aside, good practice suggests that we should count **all executed shares**, not just those executed at the reporting market center.  That's because some firms report the values separately,
+while others include away-executed shares in their market center-executed share count and leave the away-executed share field empty.  So I create a new column, **'mcaway_exec_shrs'**, that holds the sum of market-executed plus away-ex-shares shares, (my variables *mc_exec_shrs + away_exec_shrs*, or on the raw 605 form, fields F10 + F11) for use in our share-weighting denominators.
+
+Here's what those input and output columns look like, for a few rows in the table:
+
+```{r,results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = TRUE)
+
+sample_table <- xtable(f605_mktble_df[1:5, c(2:6, 10:11, 19:20, 24:25, 32:34)], type='html', caption = "The Columns Used to Calculate Net Price-Improvement", digits = 4)
+
+print(sample_table, type = 'html')
+```
+
+
+The industry-standard weighted mean is calculated like this:
+
+> sum(100 * ((px_improved_shrs * px_improved_avg_amt) - (outside_quote_shrs * outside_quote_avg_amt))) / sum(mcaway_exec_shrs)
+
+My row-wise weighted mean is calculated like so:
+
+> The weighted mean of all the row's 'net_pi_mcaway', where the weights are each row's 'mcaway_exec_shrs' 
+
+The resulting weighted means are equivalent
+
+
+```{r,results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = TRUE)
+
+
+# A table showing equivalency to "industry standard" weighted mean
+
+net_pi_eq_df <- cbind(net_pi_mcaway_morder_mean, net_pi_mcaway_morder_wmean, net_pi_mcaway_morder_sp500_mean, net_pi_mcaway_morder_sp500_wmean)
+
+net_pi_eq_df <- net_pi_eq_df %>%
+  gather(average, net_pi)
+
+rownames(net_pi_eq_df) <- c("indsty_std_morder_wgtd_mean", "mkt_orders_share_wgtd_mean", "indsty_std_mkt_orders_sp500_wgtd_mean", "mkt_orders_sp500_share_wgtd mean")
+
+net_pi_eq_tbl <- net_pi_eq_df %>%
+  dplyr::select(net_pi)
+
+net_pi_eq_table <- xtable(net_pi_eq_tbl, type='html', caption = "My row-wise volume weighting yields the same weighted average as the 'industry-standard' weighting", digits = 4)
+
+print(net_pi_eq_table, type = 'html')
+```
+
+### Market-Orders Only
+
+We initially filtered the raw Form 605 data to retain the two order types that make sense to study for price improvement: market-orders and marketable-limit-orders. But limit orders differ drastically in their routing and -- as the plot below shows -- their execution measures, since some Rule 605 reports include IOC orders with their limit order tallies:
+
+```{r, echo=FALSE, fig.cap= "Net Price-Improvement, by order type"}
+# library(ggplot2)
+
+net_pi_mcaway_bxplt_type<- f605_mktble_df %>%
+  ggplot(aes(x = order_type, y = net_pi_mcaway)) +
+  geom_boxplot() +
+  stat_summary(fun.y=mean, geom="point", shape=5, size=4, color = "red") +
+  stat_summary(aes(x=order_type), fun.y = mean, geom = "text", label = "mean", color = "red", hjust = +1.5, size = 4) +
+  ggtitle("Net Price-Improvement in cents per share, by order type") +
+  coord_cartesian(ylim=c(-1, 1))
+
+net_pi_mcaway_bxplt_type
+```
+
+As many have suggested to me, I'll concentrate on the execution quality of market-orders from here on.
+
+
+### Mean or Median?
+
+A problem with averaging a price measure like net price-improvement across stocks is that the *mean* can be overly-influenced by a stock with nominally-large share prices and spreads, e.g. Priceline or NVR, whose shares have topped $1,000 apiece. Data entry errors can also overly influence a mean.  The graphic, below, of the distribution of net p-i across the stocks in your Form 605 reports allows you to see such "outliers".
+
+```{r, echo=FALSE, fig.cap = "Net Price-Improvement, Market Orders only"}
+
+net_pi_mcaway_morder_density   <-  f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  ggplot(data = ., aes(net_pi_mcaway)) +
+  geom_density() +
+  xlab("Net Price-Improvement, in cents per share") +
+  ggtitle("Net Price-Improvement, Market Orders only")
+
+net_pi_mcaway_morder_density
+```
+
+Zoom in on the majority of the stocks, where net price-improvement is under a penny, enables you to better see how the measure looks across stocks.
+
+```{r, echo=FALSE, fig.cap = "Net Price-Improvement < +-20 cents, all stocks, all months"}
+
+net_pi_wmean_rnd <- round(net_pi_mcaway_morder_wmean, digits = 5)
+net_pi_wmed_rnd  <- round(net_pi_mcaway_morder_wmed, digits = 5)
+
+zoom_net_pi_mcaway_morder_density   <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  ggplot(data =., aes(net_pi_mcaway)) +
+  geom_density() +
+  xlab("Net Price-Improvement, in pennies") +
+  ggtitle("Net Price-Improvement, Market Orders only") +
+  geom_vline(xintercept = as.numeric(net_pi_mcaway_morder_wmean), linetype = "dotted", color = "red") +
+  geom_vline(xintercept = as.numeric(net_pi_mcaway_morder_wmed), linetype = "dotted", color = "blue") +
+  annotate("text", x = 0, y = 25, label = paste0("vol-weighted mean", " = ", net_pi_wmean_rnd), color = "red") +
+  annotate("text", x = 0, y = 20, label = paste0("vol-weighted median", " = ", net_pi_wmed_rnd), color = "blue") +
+  coord_cartesian(xlim=c(-5, 5))
+
+zoom_net_pi_mcaway_morder_density
+```
+
+A boxplot shows outliers more clearly:
+
+```{r, echo=FALSE, fig.cap = "Net Price-Improvement, all stocks, all months"}
+
+
+net_pi_mcaway_bxplt <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  ggplot(data=., aes(x = factor(0), y = net_pi_mcaway)) +
+  geom_boxplot() +
+  xlab("net-pi market orders") +
+  scale_x_discrete(breaks = NULL) +
+  coord_flip()
+
+net_pi_mcaway_bxplt
+
+```
+
+
+These are the 15 extreme values at the bottom and top of your net price improvement:
+
+```{r,results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = TRUE)
+
+# the bottom values
+pi_head_table <- xtable(net_pi_mcaway_top[1:15, c(2:6, 34)], type='html', caption = "Top extreme values of net price-improvement", digits = 4)
+
+print(pi_head_table, type = 'html')
+
+#the top values
+pi_tail_table <- xtable(net_pi_mcaway_bot[1:15, c(2:6, 34)], type='html', caption = "Bottom extreme values of net price-improvement", digits = 4)
+
+print(pi_tail_table, type = 'html')
+
+```
+
+
+**Please glance at these values to alert me to any that seem to be data-entry errors in the raw Form 605.**
+
+The influence of extreme outliers on a mean, is one reason I'm inclined to think that the mean is less representative than the median of the price-improvement that a customer's likely to get.  One can argue that some kind of trimmed-mean could exclude a certain outliers, but trimming criteria raise concerns about their arbitrariness or cherry-picking.
+
+Volume-weighting makes both the mean and the median more representative, but the median still seems a better estimate of where a random order's execution would lie.
+
+Indeed, the volume-weighted median is sort of a *probability*-weighted measure, giving the most weight to where the volume is and is therefore a good representation of the execution levels typically seen by the market center and its customers (given the limits of the Form 605 raw data).
+
+On the other hand, many market centers give distinctively-better price-improvement on orders in the two smallest categories (see below), so an article written for retail investors (and institution who break large orders into pieces) might want a summary measure that gives a sense of those price-improvements.  The weighted-mean tends to be higher than the weighted-median, and would better serve this last purpose.
+
+### Comparing Categories
+
+We can see whether the median net price-improvement is much affected by a stock's exchange listing or its  size (for which, we use the proxy of its membership in the S&P 500 or the Russell 1000).
+
+Here, I compare S&P 500 members vs. non-members. The horizontal line across the middle of the boxplots shows the median net-pi for each group, and I mark the mean with a red diamond:
+
+```{r, echo=FALSE, fig.cap= "Net Price-Improvement on market orders, by S&P 500 membership"}
+
+# weighted medians and other quantiles of net-pi on market orders, by S&P memberhip
+df_sp_1 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == T)
+
+df_sp_1_w <- t(data.frame(weighted.quantile (df_sp_1$net_pi_mcaway, df_sp_1$mcaway_exec_shrs)))
+rownames(df_sp_1_w) <- "in_sp500"
+colnames(df_sp_1_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+df_sp_2 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == F)
+
+df_sp_2_w <- t(data.frame(weighted.quantile (df_sp_2$net_pi_mcaway, df_sp_2$mcaway_exec_shrs)))
+rownames(df_sp_2_w) <- "not_sp500"
+colnames(df_sp_2_w) <- c("0%", "25%", "50%", "75%", "100%") 
+
+df_sp_1_2_w <- data.frame(rbind(df_sp_1_w, df_sp_2_w))
+colnames(df_sp_1_2_w) <- c("0%", "25%", "50%", "75%", "100%")
+df_sp_1_2_w$in_sp500 <- ordered(rownames(df_sp_1_2_w), levels = c("in_sp500", "not_sp500"))
+
+# weighted mean of net_pi on market orders, by S&P 500 membership
+
+df_sp_1_2_wmean <-f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  group_by(in_sp500) %>%
+  summarize(wmean_sp500 = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
+
+rownames(df_sp_1_2_wmean) <- c("not_sp500", "in_sp500")
+
+df_sp_1_2_wmean$in_sp500 <- ordered(rownames(df_sp_1_2_wmean), levels = c("in_sp500", "not_sp500"))
+ 
+# draw the plot
+net_pi_wmed_morders_sp500_bxplt <- ggplot(df_sp_1_2_w, aes(x = in_sp500, ymin = `0%`, lower = `25%`,
+                middle = `50%`, upper = `75%`, ymax = `100%`)) +
+  geom_boxplot(stat = "identity", colour = I("#3366FF")) +
+  geom_point(data=df_sp_1_2_wmean,aes(x=in_sp500, y=wmean_sp500),shape = 23, color = "red",
+             size = 3, fill ="white",inherit.aes=FALSE) +
+  geom_text(data=df_sp_1_2_wmean, aes(x=in_sp500, y=wmean_sp500),label = "weighted-mean", color = "red", hjust = +1.2, size = 4, inherit.aes=FALSE) +
+  ggtitle("Net Price-Improvement on market orders, by S&P 500 membership") +
+  coord_cartesian(ylim=c(0, 0.75))
+
+# print it
+net_pi_wmed_morders_sp500_bxplt
+ 
+```
+
+Here's the net cents p-i for Russell 1000 membership and, _more importantly_, for Russell non-membership -- to look at execution for _illiquid_ names:
+
+
+```{r,echo=FALSE,  fig.cap= "Net Price-Improvement on market orders, by r1000 membership"}
+
+# weighted medians and other quantiles of net-pi on market orders, by r1000 membership
+df_r1000_1 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_r1000 == T)
+
+df_r1000_1_w <- t(data.frame(weighted.quantile (df_r1000_1$net_pi_mcaway, df_r1000_1$mcaway_exec_shrs)))
+rownames(df_r1000_1_w) <- "in_r1000"
+colnames(df_r1000_1_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+df_r1000_2 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_r1000 == F)
+
+df_r1000_2_w <- t(data.frame(weighted.quantile (df_r1000_2$net_pi_mcaway, df_r1000_2$mcaway_exec_shrs)))
+rownames(df_r1000_2_w) <- "not_r1000"
+colnames(df_r1000_2_w) <- c("0%", "25%", "50%", "75%", "100%") 
+
+df_r1000_1_2_w <- data.frame(rbind(df_r1000_1_w, df_r1000_2_w))
+colnames(df_r1000_1_2_w) <- c("0%", "25%", "50%", "75%", "100%")
+df_r1000_1_2_w$in_r1000 <- ordered(rownames(df_r1000_1_2_w), levels = c("in_r1000", "not_r1000"))
+
+# weighted mean of net_pi on market orders, by r1000 membership
+
+df_r1000_1_2_wmean <-f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  group_by(in_r1000) %>%
+  summarize(wmean_r1000 = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
+
+rownames(df_r1000_1_2_wmean) <- c("not_r1000", "in_r1000")
+
+df_r1000_1_2_wmean$in_r1000 <- ordered(rownames(df_r1000_1_2_wmean), levels = c("in_r1000", "not_r1000"))
+ 
+# draw the plot
+net_pi_wmed_morders_r1000_bxplt <- ggplot(df_r1000_1_2_w, aes(x = in_r1000, ymin = `0%`, lower = `25%`,
+                middle = `50%`, upper = `75%`, ymax = `100%`)) +
+  geom_boxplot(stat = "identity", colour = I("#3366FF")) +
+  geom_point(data=df_r1000_1_2_wmean,aes(x=in_r1000, y=wmean_r1000),shape = 23, color = "red",
+             size = 3, fill ="white",inherit.aes=FALSE) +
+  geom_text(data=df_r1000_1_2_wmean, aes(x=in_r1000, y=wmean_r1000),label = "weighted-mean", color = "red", hjust = +1.2, size = 4, inherit.aes=FALSE) +
+  ggtitle("Net Price-Improvement on market orders, by r1000 membership") +
+  coord_cartesian(ylim=c(0, 0.75))
+
+# print it
+net_pi_wmed_morders_r1000_bxplt
+
+```
+
+
+Here's the net p-i for NYSE listing:
+
+```{r,echo=FALSE,  fig.cap= "Net Price-Improvement on market orders, by NYSE listing"}
+
+# weighted medians and other quantiles of net-pi on market orders, by nyse listing
+df_ny_1 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(on_nyse == T)
+
+df_ny_1_w <- t(data.frame(weighted.quantile (df_ny_1$net_pi_mcaway, df_ny_1$mcaway_exec_shrs)))
+rownames(df_ny_1_w) <- "on_nyse"
+colnames(df_ny_1_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+df_ny_2 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(on_nyse == F)
+
+df_ny_2_w <- t(data.frame(weighted.quantile (df_ny_2$net_pi_mcaway, df_ny_2$mcaway_exec_shrs)))
+rownames(df_ny_2_w) <- "not_nyse"
+colnames(df_ny_2_w) <- c("0%", "25%", "50%", "75%", "100%") 
+
+df_ny_1_2_w <- data.frame(rbind(df_ny_1_w, df_ny_2_w))
+colnames(df_ny_1_2_w) <- c("0%", "25%", "50%", "75%", "100%")
+df_ny_1_2_w$on_nyse <- ordered(rownames(df_ny_1_2_w), levels = c("on_nyse", "not_nyse"))
+
+# weighted mean of net_pi on market orders, by nyse listing
+
+df_ny_1_2_wmean <-f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  group_by(on_nyse) %>%
+  summarize(wmean_ny = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
+
+rownames(df_ny_1_2_wmean) <- c("not_nyse", "on_nyse")
+
+df_ny_1_2_wmean$on_nyse <- ordered(rownames(df_ny_1_2_wmean), levels = c("on_nyse", "not_nyse"))
+ 
+# draw the plot
+net_pi_wmed_morders_nyse_bxplt <- ggplot(df_ny_1_2_w, aes(x = on_nyse, ymin = `0%`, lower = `25%`,
+                middle = `50%`, upper = `75%`, ymax = `100%`)) +
+  geom_boxplot(stat = "identity", colour = I("#3366FF")) +
+  geom_point(data=df_ny_1_2_wmean,aes(x=on_nyse, y=wmean_ny),shape = 23, color = "red",
+             size = 3, fill ="white",inherit.aes=FALSE) +
+  geom_text(data=df_ny_1_2_wmean, aes(x=on_nyse, y=wmean_ny),label = "weighted-mean", color = "red", hjust = +1.2, size = 4, inherit.aes=FALSE) +
+  ggtitle("Net Price-Improvement on market orders, by nyse listing") +
+  coord_cartesian(ylim=c(0, 0.75))
+
+# print it
+net_pi_wmed_morders_nyse_bxplt
+
+```
+
+And for Nasdaq listing:
+
+```{r, echo=FALSE, fig.cap= "Net Price-Improvement on market orders, by Nasdaq listing"}
+
+# weighted medians and other quantiles of net-pi on market orders, by nasdaq listing
+df_nq_1 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(on_nasdaq == T)
+
+df_nq_1_w <- t(data.frame(weighted.quantile (df_nq_1$net_pi_mcaway, df_nq_1$mcaway_exec_shrs)))
+rownames(df_nq_1_w) <- "on_nasdaq"
+colnames(df_nq_1_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+df_nq_2 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(on_nasdaq == F)
+
+df_nq_2_w <- t(data.frame(weighted.quantile (df_nq_2$net_pi_mcaway, df_nq_2$mcaway_exec_shrs)))
+rownames(df_nq_2_w) <- "not_nasdaq"
+colnames(df_nq_2_w) <- c("0%", "25%", "50%", "75%", "100%") 
+
+df_nq_1_2_w <- data.frame(rbind(df_nq_1_w, df_nq_2_w))
+colnames(df_nq_1_2_w) <- c("0%", "25%", "50%", "75%", "100%")
+df_nq_1_2_w$on_nasdaq <- ordered(rownames(df_nq_1_2_w), levels = c("on_nasdaq", "not_nasdaq"))
+
+# weighted mean of net_pi on market orders, by nasdaq listing
+
+df_nq_1_2_wmean <-f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  group_by(on_nasdaq) %>%
+  summarize(wmean_nq = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
+
+rownames(df_nq_1_2_wmean) <- c("not_nasdaq", "on_nasdaq")
+
+df_nq_1_2_wmean$on_nasdaq <- ordered(rownames(df_nq_1_2_wmean), levels = c("on_nasdaq", "not_nasdaq"))
+ 
+# draw the plot
+net_pi_wmed_morders_nasdaq_bxplt <- ggplot(df_nq_1_2_w, aes(x = on_nasdaq, ymin = `0%`, lower = `25%`,
+                middle = `50%`, upper = `75%`, ymax = `100%`)) +
+  geom_boxplot(stat = "identity", colour = I("#3366FF")) +
+  geom_point(data=df_nq_1_2_wmean,aes(x=on_nasdaq, y=wmean_nq),shape = 23, color = "red",
+             size = 3, fill ="white",inherit.aes=FALSE) +
+  geom_text(data=df_nq_1_2_wmean, aes(x=on_nasdaq, y=wmean_nq),label = "weighted-mean", color = "red", hjust = +1.2, size = 4, inherit.aes=FALSE) +
+  ggtitle("Net Price-Improvement on market orders, by nasdaq listing") +
+  coord_cartesian(ylim=c(0, 0.75))
+
+# print it
+net_pi_wmed_morders_nasdaq_bxplt
+
+```
+
+
+Because market centers have different mixes of order flow, a kind of standard can be imposed on their comparison if we compare them all on their execution of S&P 500-member stocks. That's what I'll do.
+
+
+### Order Size
+
+We can also compare the effects of order-size. The boxplots below show there are size differences. I'm told that the typical retail order falls in the 500-to-1999 bracket, but I'm inclined to use the average across all order sizes, to avoid suspicions of cherry-picking:
+
+```{r, echo=FALSE, fig.cap= "Net Price-Improvement, by order size"}
+
+# weighted medians and other quantiles of net-pi on market orders, by order_size
+df_sz_499 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr" , order_size == "100-499")
+
+df_sz_499_w <- t(data.frame(weighted.quantile(df_sz_499$net_pi_mcaway, df_sz_499$mcaway_exec_shrs)))
+rownames(df_sz_499_w) <- "100-499"
+colnames(df_sz_499_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+df_sz_1999 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr" , order_size == "500-1999")
+
+df_sz_1999_w <- t(data.frame(weighted.quantile(df_sz_1999$net_pi_mcaway, df_sz_1999$mcaway_exec_shrs)))
+rownames(df_sz_1999_w) <- "500-1999"
+colnames(df_sz_1999_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+
+df_sz_4999 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr" , order_size == "2000-4999")
+
+df_sz_4999_w <- t(data.frame(weighted.quantile(df_sz_4999$net_pi_mcaway, df_sz_4999$mcaway_exec_shrs)))
+rownames(df_sz_4999_w) <- "2000-4999"
+colnames(df_sz_4999_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+df_sz_5000 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr" , order_size == "5000+")
+
+df_sz_5000_w <- t(data.frame(weighted.quantile(df_sz_5000$net_pi_mcaway, df_sz_5000$mcaway_exec_shrs)))
+rownames(df_sz_5000_w) <- "5000+"
+colnames(df_sz_5000_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+
+df_sz_all_w <- data.frame(rbind(df_sz_499_w, df_sz_1999_w, df_sz_4999_w, df_sz_5000_w))
+colnames(df_sz_all_w) <- c("0%", "25%", "50%", "75%", "100%")
+df_sz_all_w$order_size <- ordered(rownames(df_sz_all_w), levels = c("100-499", "500-1999", "2000-4999", "5000+"))
+
+# weighted mean of net_pi on market orders, by order_size
+
+df_sz_all_wmean <-ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(order_size),
+                        summarize, 
+                        wmean=round(weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE), 2))
+
+rownames(df_sz_all_wmean) <- c("100-499", "500-1999", "2000-4999", "5000+")
+
+df_sz_all_wmean$order_size<- ordered(rownames(df_sz_all_wmean), levels = c("100-499", "500-1999", "2000-4999", "5000+"))
+
+# draw the plot
+net_pi_wmed_morders_sz_bxplt <- ggplot(df_sz_all_w, aes(x = order_size, ymin = `0%`, lower = `25%`,
+                                                           middle = `50%`, upper = `75%`, ymax = `100%`)) +
+  geom_boxplot(stat = "identity", colour = I("#3366FF")) +
+  geom_point(data=df_sz_all_wmean, aes(x=order_size, y=wmean), shape = 23, color = "red",
+             size = 3, fill ="white",inherit.aes=FALSE) +
+  geom_text(data=df_sz_all_wmean, aes(x=order_size, y=wmean),label = "wgtd-mean", color = "red", hjust = +1.1, size = 4, inherit.aes=FALSE) +
+  ggtitle("Net Price-Improvement on market orders, by order size") +
+  coord_cartesian(ylim=c(-0.25, 1.25))
+
+# print it
+net_pi_wmed_morders_sz_bxplt
+
+```
+
+
+
+## More than One Market Center?
+
+If your Form 605 reports on more than one market center, here's how their net price-improvement on S&P 500-indexed stocks compares, for market orders. Otherwise ignore this section:
+
+```{r,results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = TRUE)
+
+mc_wmean <-f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == TRUE) %>%
+  group_by(market_center) %>%
+  summarise(mc_wmean = round(weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm = TRUE), 2))
+  
+# df_mcenter_all_wmean  <- ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(market_center),
+#                         summarize, 
+#                         wmean=round(weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE), 2))
+
+mc_wmed <-f605_mktble_df %>%
+  filter(order_type == "mkt_ordr") %>%
+  filter(in_sp500 == TRUE) %>%
+  group_by(market_center) %>%
+  summarise(mc_wmed = round(weighted.median(net_pi_mcaway, mcaway_exec_shrs, na.rm = TRUE), 2))
+
+
+# df_mcenter_all_wmed <-ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(market_center),
+#                              summarize, 
+#                              wmedian=round(weighted.median(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE), 2))
+
+df_mcenter_all <- inner_join(mc_wmean , mc_wmed, by = "market_center")
+
+df_mcenter_table <- xtable(df_mcenter_all, type='html', caption = "Does the Form 605 show multiple market centers?")
+
+print(df_mcenter_table, type = 'html')
+
+```
+
+
+## Aggregating by Ticker
+
+Many firms apparently analyse their execution quality by ticker, aggregating the Form 605's rows of order_type and order_size for each stock. That throws away some detail in the raw form, but I looked at the resulting execution measures. Before aggregating, I filtered out all order types except market-orders.
+
+Here's a few rows from my ticker-level table **'f605_morder_ticker_df'**
+
+```{r,results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = TRUE)
+
+sample_table_t <- xtable(f605_morder_ticker_df[1:10, ], type='html', caption = "Some Rows and Columns from the f605_morder_ticker_df data frame", digits = 4)
+
+print(sample_table_t, type = 'html')
+```
+
+Among tickers, here is the overall average net price-improvement (in cents per share), calculated various ways.
+
+```{r, results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = FALSE)
+
+
+
+# combine these alternative measures in a table
+
+net_pi_df_t <- data.frame(cbind(net_pi_mcaway_wmean_t, net_pi_mcaway_sp500_wmean_t, net_pi_mcaway_wmed_t, net_pi_mcaway_sp500_wmed_t))
+
+net_pi_df_t <- net_pi_df_t %>%
+  gather(average, net_pi)
+
+rownames(net_pi_df_t) <- c("share-wgtd mean", "S&P 500 stks share_wgtd mean",
+                           "share-wgtd median", "S&P 500 stks share-wgtd median")
+
+net_pi_tickers <- net_pi_df_t %>%
+  dplyr::select(net_pi)
+
+net_pi_table_t <- xtable(net_pi_tickers, type='html', caption = "Net price-improvement averages of tickers", digits = 4)
+
+print(net_pi_table_t , type = 'html')
+
+```
+
+
+Compare these ticker-aggregate averages to the underlying row-level averages that we analyzed above.
+
+```{r, results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = FALSE)
+
+# Alternative measures of row-volume-weighted net-pi averages in a table:
+
+
+net_pi_df <- cbind(net_pi_mcaway_morder_wmean, net_pi_mcaway_morder_sp500_wmean, net_pi_mcaway_morder_wmed, net_pi_mcaway_morder_sp500_wmed)
+
+net_pi_df <- net_pi_df %>%
+  gather(average, net_pi)
+
+rownames(net_pi_df) <- c("mkt_orders_share_wgtd_mean", "mkt_orders_sp500_share_wgtd mean", "mkt_orders_share_wgtd_median", "mkt_orders_sp500_share_wgtd_median")
+
+net_pi_tbl <- net_pi_df %>%
+  dplyr::select(net_pi)
+
+net_pi_table <- xtable(net_pi_tickers, type='html', caption = "Net price-improvement averages of rows", digits = 4)
+
+print(net_pi_table , type = 'html')
+
+```
+
+## Effective-over-Quoted Spreads
+
+I calculated effective-over-quoted spreads by first creating for each row a variable **avg_quoted_spread_mcaway**, i.e. ask price minus bid price, using the share-weighted net-price-improvement measures I'd previously-created, where the denominator is orders executed at *and* away from the market-center (see discussion above, for my rationale).
+
+Again, I only consider market_orders and I premultiply "average effective spread per share" by 100, as I previously did "net price improvement per share," to have everything in cents.
+
+The formulae for these variables are:
+
+> avg_quoted_spread_mcaway = (100* avg_effec_spread + 2* net_pi_mcaway)
+
+and
+
+> effective_over_quoted_mcaway = (100* avg_effec_spread / avg_quoted_spread_mcaway)
+
+For weighted averages, the weighting factor for E/Q is slightly more complicated than for price improvement.  Instead of just weighting by the volume of executed shares, we use **the product of that volume and the quoted spread**, to account for the fact that different market makers might have different spreads. An E/Q of .50 is tougher to provide for Priceline, e.g., than for Bank of America.
+
+> eoq_wgt <- (mcaway_exec_shrs * avg_quoted_spread_mcaway)
+
+
+Here are tables with the E/Q values from the above chart:
+
+```{r,results='asis', echo=FALSE}
+library(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = TRUE)
+
+# combine these EoQ measures in a table
+
+eoq_df <- data.frame(cbind(effective_over_quoted_morder_mcaway_wmean, effective_over_quoted_morder_sp500_mcaway_wmean, effective_over_quoted_morder_notsp500_mcaway_wmean,effective_over_quoted_morder_mcaway_wmed, effective_over_quoted_morder_sp500_mcaway_wmed, effective_over_quoted_morder_notsp500_mcaway_wmed))
+
+eoq_df<- eoq_df %>%
+  gather(average, eoq)
+
+rownames(eoq_df) <- c("Effective-over_Quoted weighted-mean",
+                         "S&P 500 Effective-over_Quoted weighted-mean",
+                         "Non-S&P 500 Effective-over_Quoted weighted-mean",
+                         "Effective-over_Quoted weighted-median",
+                         "S&P 500 Effective-over_Quoted weighted-median",
+                         "Non-S&P 500 Effective-over_Quoted weighted-median")
+
+eoq_tbl <- eoq_df %>%
+  dplyr::select(eoq)
+
+
+eoq_table <- xtable(eoq_tbl, type='html', include.rownames = F,
+                    caption = "Effective-over-Quoted Spreads on market-orders", digits = 4)
+
+print(eoq_table, type = 'html')
+```
+
+
+
+# Order size and Effective-over-Quoted Spreads
+
+As with net price-improvement, order size makes a big difference. Here are the ratios of the effective-over-quoted spreads for market orders, by order size.
+
+```{r, echo=FALSE, fig.cap= "Effective-over-Quoted (market orders), by order size"}
+
+# create a weighting variable
+f605_mktble_df <- f605_mktble_df %>%
+  mutate(eoq_wgt = (mcaway_exec_shrs * avg_quoted_spread_mcaway))
+
+# weighted medians and other quantiles of net-pi on market orders, by order_size
+df_eoq_sz_499 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr" , order_size == "100-499")
+
+df_eoq_sz_499_w <- t(data.frame(weighted.quantile(df_eoq_sz_499$effective_over_quoted_mcaway, df_eoq_sz_499$eoq_wgt, na.rm=T)))
+rownames(df_eoq_sz_499_w) <- "100-499"
+colnames(df_eoq_sz_499_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+df_eoq_sz_1999 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr" , order_size == "500-1999")
+
+df_eoq_sz_1999_w <- t(data.frame(weighted.quantile(df_eoq_sz_1999$effective_over_quoted_mcaway, df_eoq_sz_1999$eoq_wgt, na.rm=T)))
+rownames(df_eoq_sz_1999_w) <- "500-1999"
+colnames(df_eoq_sz_1999_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+
+df_eoq_sz_4999 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr" , order_size == "2000-4999")
+
+df_eoq_sz_4999_w <- t(data.frame(weighted.quantile(df_eoq_sz_4999$effective_over_quoted_mcaway, df_eoq_sz_4999$eoq_wgt, na.rm=T)))
+rownames(df_eoq_sz_4999_w) <- "2000-4999"
+colnames(df_eoq_sz_4999_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+df_eoq_sz_5000 <- f605_mktble_df %>%
+  filter(order_type == "mkt_ordr" , order_size == "5000+")
+
+df_eoq_sz_5000_w <- t(data.frame(weighted.quantile(df_eoq_sz_5000$effective_over_quoted_mcaway, df_eoq_sz_5000$eoq_wgt, na.rm=T)))
+rownames(df_eoq_sz_5000_w) <- "5000+"
+colnames(df_eoq_sz_5000_w) <- c("0%", "25%", "50%", "75%", "100%")
+
+
+df_eoq_sz_all_w <- data.frame(rbind(df_eoq_sz_499_w, df_eoq_sz_1999_w, df_eoq_sz_4999_w, df_eoq_sz_5000_w))
+colnames(df_eoq_sz_all_w) <- c("0%", "25%", "50%", "75%", "100%")
+df_eoq_sz_all_w$order_size <- ordered(rownames(df_eoq_sz_all_w), levels = c("100-499", "500-1999", "2000-4999", "5000+"))
+
+# weighted mean of net_pi on market orders, by order_size
+
+df_eoq_sz_all_wmean <-ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(order_size),
+                        summarize, 
+                        wmean=round(weighted.mean(effective_over_quoted_mcaway, eoq_wgt, na.rm=TRUE), 2))
+
+rownames(df_eoq_sz_all_wmean) <- c("100-499", "500-1999", "2000-4999", "5000+")
+
+df_eoq_sz_all_wmean$order_size<- ordered(rownames(df_eoq_sz_all_wmean), levels = c("100-499", "500-1999", "2000-4999", "5000+"))
+
+# draw the plot
+eoq_wmed_morders_sz_bxplt <- ggplot(df_eoq_sz_all_w, aes(x = order_size, ymin = `0%`, lower = `25%`,
+                                                           middle = `50%`, upper = `75%`, ymax = `100%`)) +
+  geom_boxplot(stat = "identity", colour = I("#3366FF")) +
+  geom_point(data=df_eoq_sz_all_wmean, aes(x=order_size, y=wmean), shape = 23, color = "red",
+             size = 3, fill ="white",inherit.aes=FALSE) +
+  geom_text(data=df_eoq_sz_all_wmean, aes(x=order_size, y=wmean),label = "wgtd-mean", color = "red", hjust = +1.1, size = 4, inherit.aes=FALSE) +
+  ggtitle("Effective-over-Quoted Spread Ratios on market orders, by order size") +
+  coord_cartesian(ylim=c(0, 1))
+
+# print it
+eoq_wmed_morders_sz_bxplt
+
+```
+
+
+## Reproducing this analysis
+
+You can reproduce this analysis by using RStudio to open the file **"form605_makefile.R"**, which you'll find in the directory **"./data/gather_source"**. Click on the "Source" button you'll see to the upper right of the file window and the script will automatically run through the data-cleaning and analysis that I performed. It will also save MS Excel-readable files with the calculated numbers, in the directory **".analysis/results_data"**, including a large spreadsheet file that has the Form 605 data that's been cleaned up and formatted.
+
+We've undertaken the effort to give you these "replication files" so that you can see exactly what we've done, so please take a look at our work and critique it.
+
+Thanks! 
+
+Bill Alpert
+212.416.2742 (w)
+william.alpert@barrons.com
+
+
+[^markdown]: https://rmarkdown.rstudio.com
+[^rsoftware]: https://www.r-project.org
+[^rstudio]:  https://www.rstudio.com
+
+```{r sessionInfo, include=TRUE, echo=TRUE, results='markup'}
+sessionInfo()
+```
