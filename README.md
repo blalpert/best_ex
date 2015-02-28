@@ -24,29 +24,30 @@ You can download these files from the TK github repository. Please copy them to 
 
 The archive's directory structure looks like this:
 
-      rule605/
-            README.Rmd
-            README.html
-            analysis/
-                form605_write_functions.R
-                rule605_report.Rmd
-                Rule605_report.html
-                results_data/
-            data/
-                constituent_data/
-                    russell1000_constituents.csv
-                    Sp500constituents.csv
-                    tickers_AMEX.csv
-                    tickers_NASDAQ.csv
-                    tickers_NYSE.csv
-                f605_data/
-                    sample_rule605_data.dat
-                gather_source/
-                    form605_makefile.R
-                    form605_merge_data.R
-                    install_packages.R
+   rule605/
+        README.md
+        README.Rmd
+        analysis/
+            form605_write_functions.R
+            rule605_report.Rmd
+            results_data/
+        data/
+            constituent_data/
+                russell1000_constituents.csv
+                Sp500constituents.csv
+                tickers_AMEX.csv
+                tickers_NASDAQ.csv
+                tickers_NYSE.csv
+            f605_data/
+                TCDRG201410.txt
+                TCDRG201411.txt
+                TCDRG201412.txt
+            gather_source/
+                form605_makefile.R
+                form605_merge_data.R
+                install_packages.R
 
-In the directory **"./rule605/data/f605\_data"**, we include a sample file of [CITADEL] data **"sample\_rule605\_data.dat"**, in the standard comma-separated values format that Rule 605 requires. You can replace this file with the raw, uncompressed data from any Rule 605-filing firm that you want to analyze (except for those that use idiosynchratic formats, of whom we've so far discovered the NYSE's Archepelago and Interactive Brokers). We wrote our code to analyze one firm's filings at a time, so you should only fill this directory with files from one firm at a time. You can load it with as many months' files as you like.
+In the directory **"./rule605/data/f605\_data"**, we include three months' files of Citadel Securities' data, in the standard comma-separated values format that Rule 605 mandates. You can replace this file with the raw, uncompressed data from any Rule 605-filing firm that you want to analyze (except for those that use idiosynchratic formats, of whom we've so far discovered the NYSE's Archepelago and Interactive Brokers). We wrote our code to analyze one firm's filings at a time, so you should only fill this directory with files from one firm at a time. You can load it with as many months' files as you like.
 
 WHAT YOU CAN DO WITH THESE FILES
 ================================
@@ -69,7 +70,7 @@ You can see the new results most easily if you then open the file **"rule605\_an
 
 ### Perform New Analyses
 
-Our story compared market makers' SEC Rule 605 reports for the most recent three months --- since that's the minimum range that every firm made available. But these scripts should work on any set of *un-compressed* Form 605 files (in other words, you should "unzip" any data that you got in compressed form). The files we used in our story are large -- hundreds of megabytes, in total. That's why we just include a sample file here, but you can replace the sample file that's in the directory **"./rule605/data/f605\_data"** with as many months' raw files as you like, from any market maker or exchange that makes them publicly-available. Then repeat the process described in preceding two paragraphs (to keep the separate results for each firm, you may want to first move any **".csv"** files previously written to the directory **"/rule605/analysis/results-data"**), which preserve spreadsheet-readable records of the analysis and a formatted table of the Rule 605 data.
+Our story compared market makers' SEC Rule 605 reports for the most recent three months --- since that's the minimum range that every firm made available. But these scripts should work on any set of *un-compressed* Form 605 files (in other words, you should "unzip" any data that you got in compressed form). The files we used in our story are large -- hundreds of megabytes, in total. That's why we just include sample files here for Citadel Securities, but you can replace the sample file that's in the directory **"./rule605/data/f605\_data"** with as many months' raw files as you like, from any market maker or exchange that makes them publicly-available. Then repeat the process described in preceding two paragraphs (to keep the separate results for each firm, you may want to first move any **".csv"** files previously written to the directory **"/rule605/analysis/results-data"**), which preserve spreadsheet-readable records of the analysis and a formatted table of the Rule 605 data.
 
 If you know a bit of R and statistics, you can add code to the **"form605\_analysis.R"** file and carry out any analysis that the Form 605 data allow. That's how reproducible research accelerates the growth of our collective knowledge.
 
