@@ -10,7 +10,7 @@ These files supplement the March 2, 2015 [Barron's story](http://www.barrons.com
 
 The scripts let you exactly reproduce our processing of raw Rule 605 reports and the calculations used in our study of the market makers who serve the largest discount stockbrokers. You can scrutinize sample raw data and every step in our analysis. The scripts also produce a browser-readable report with graphs and tables that explain how we arrived at our results.
 
-We provide these materials *"as-is"*. Be aware that there can be frequent changes in the required open-source software "R". But you are welcome to look for errors or improve upon our work. You will at least see how careful we've been in our reporting.
+We provide these materials *"as-is"*. At the bottom of this README, and the "Rule605_report", you'll see the software environment in which we ran our code.  Each of the scripts also specifies any other required R packages right up top.  So be aware that there can be frequent changes in the required open-source software "R". But you are welcome to look for errors or improve upon our work. You will at least see how careful we've been in our reporting.
 
 ### What You Need to Run the Replication Files
 
