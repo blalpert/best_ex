@@ -64,7 +64,7 @@ In the directory **"./rule605/data/gather\_source"**, you'll find the two files 
 
 To run the replication, open and click the RStudio'Source' button to run the file **"form605\_makefile.R"**, where the script should rerun the entire data gathering and analysis process. It will overwrite the results files with the new calculations. You can repeat this step any time you like, to create updated results based on new Form 605 filings or any changes you make to the analytical scripts.
 
-You can see the new results most easily if you then open the file **"rule605\_analysis.Rmd"** (in the directory **".rule605/analysis"**) and then press the **Knit HTML** button in the upper-leftish edge of the Source window. This will update the browser-readable **"Rule605\_report.html"** with your new calculations.
+You can see the new results most easily if you then open the file **"rule605\_report.Rmd"** (in the directory **".rule605/analysis"**) and then press the **Knit HTML** button in the upper-leftish edge of the Source window. This will update the browser-readable **"Rule605\_report.html"** with your new calculations.
 
 ### Perform New Analyses
 
