@@ -18,7 +18,7 @@ The only things you need to reproduce our work are a couple of free, open-source
 
 ### Our Replication Files
 
-You can download these files from the TK github repository. Please copy them to your computer's top-level directory. On Windows, the archive's directory should then look like **"C:/rule605/..."**, while on a Mac it should look like **"~/rule605/..."**. We tried to write all scripts so that they'll run on either Windows or Mac, but we did our work on Windows and haven't tested them thoroughly on a Mac -- so they surely need some tweaks to work there.
+You can download these files from the github repository https://github.com/blalpert/best-ex. Please copy them to your computer's top-level directory. On Windows, the archive's directory should then look like **"C:/rule605/..."**, while on a Mac it should look like **"~/rule605/..."**. We tried to write all scripts so that they'll run on either Windows or Mac, but we did our work on Windows and haven't tested them thoroughly on a Mac -- so they surely need some tweaks to work there.
 
 The archive's directory structure looks like this:
 ```
