@@ -115,7 +115,7 @@ f605_mktble_df <- form_605_mktble
 #
 # ----------
 
-# Rename the levels of order_size and order_type from code numbers to meaningful labels. Note that we'll filter out from our calculations all order types, except "mkt_ordr" and "mktble_lmt_ordr"
+# Rename the levels of order_size and order_type from code numbers to meaningful labels. Note that we'll filter out from our calculations all order types, except "mkt_ordr" and "mktbl_lmt_ordr"
 
 levels(f605_mktble_df$order_size) <- c("100-499", "500-1999", "2000-4999", "5000+")
 
@@ -253,18 +253,22 @@ net_pi_mcaway_size_mean <- f605_mktble_df %>%
 #
 # #########
 
+### filter data by order type
+# original 
+order_type_filter = "mkt_ordr"
+#order_type_filter = "mktbl_lmt_ordr"
 
 # mean 'net_pi' for all stocks, all months, just market orders
 
 net_pi_mcaway_morder_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   summarise(net_pi_mcaway_morder_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
 
 # mean 'net_pi' by month, just market orders
 
 net_pi_mcaway_morder_monthly_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(date) %>%
   summarise(net_pi_mcaway_morder_monthly_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -274,7 +278,7 @@ net_pi_mcaway_morder_monthly_mean <- f605_mktble_df %>%
 # mean 'net_pi' by order size, all stocks, all months, just market orders
 
 net_pi_mcaway_morder_size_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(order_size) %>%
   summarise(net_pi_mcaway_morder_size_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -283,7 +287,7 @@ net_pi_mcaway_morder_size_mean <- f605_mktble_df %>%
 # in S&P 500
 
 net_pi_mcaway_morder_sp500_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == TRUE) %>%
   summarise(net_pi_mcaway_morder_sp500_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -291,7 +295,7 @@ net_pi_mcaway_morder_sp500_mean <- f605_mktble_df %>%
 # not in S&P 500
 
 net_pi_mcaway_morder_notsp500_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == FALSE) %>%
   summarise(net_pi_mcaway_morder_notsp500_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -299,7 +303,7 @@ net_pi_mcaway_morder_notsp500_mean <- f605_mktble_df %>%
 # in Russell 1000
 
 net_pi_mcaway_morder_r1000_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_r1000 == TRUE) %>%
   summarise(net_pi_mcaway_morder_r1000_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -307,7 +311,7 @@ net_pi_mcaway_morder_r1000_mean <- f605_mktble_df %>%
 # not in Russell 1000
 
 net_pi_mcaway_morder_notr1000_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_r1000 == FALSE) %>%
   summarise(net_pi_mcaway_morder_notr1000_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -315,7 +319,7 @@ net_pi_mcaway_morder_notr1000_mean <- f605_mktble_df %>%
 # on NYSE
 
 net_pi_mcaway_morder_nyse_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_nyse == TRUE) %>%
   summarise(net_pi_mcaway_morder_nyse_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -323,7 +327,7 @@ net_pi_mcaway_morder_nyse_mean <- f605_mktble_df %>%
 # on  Nasdaq
 
 net_pi_mcaway_morder_nasdaq_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_nasdaq == TRUE) %>%
   summarise(net_pi_mcaway_morder_nasdaq_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -331,7 +335,7 @@ net_pi_mcaway_morder_nasdaq_mean <- f605_mktble_df %>%
 # on AMEX
 
 net_pi_mcaway_morder_amex_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_amex == TRUE) %>%
   summarise(net_pi_mcaway_morder_amex_mean = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -339,7 +343,7 @@ net_pi_mcaway_morder_amex_mean <- f605_mktble_df %>%
 # for Banc of America (ticker: BAM) shares:
 
 net_pi_mcaway_morder_BAM  <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(ticker == "BAM") %>%
   summarise(net_pi_mcaway_morder_BAM = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -347,7 +351,7 @@ net_pi_mcaway_morder_BAM  <- f605_mktble_df %>%
 # for Sirius XM (ticker: SIRI) shares:
 
 net_pi_mcaway_morder_SIRI <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(ticker == "SIRI") %>%
   summarise(net_pi_mcaway_morder_SIRI = (sum(net_pi_numerator) / sum(mcaway_exec_shrs))
   )
@@ -419,7 +423,7 @@ net_pi_mcaway_mean_column <- f605_mktble_df %>%
 
 
 net_pi_mcaway_morder_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   summarise(net_pi_mcaway_morder_wmean = weighted.mean(net_pi_mcaway, mcaway_exec_shrs)
   )
 
@@ -427,7 +431,7 @@ net_pi_mcaway_morder_wmean <- f605_mktble_df %>%
 # This version of the weighted mean yields the same answer as the "conventional" version on line 211.
 
 net_pi_mcaway_morder_sp500_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == TRUE) %>%
   summarise(net_pi_mcaway_morder_sp500_wmean = weighted.mean(net_pi_mcaway, mcaway_exec_shrs)
   )
@@ -469,7 +473,7 @@ net_pi_mcaway_all_wIQR <- f605_mktble_df %>%
 # the same weighted median of rows, but just market orders
 
 net_pi_mcaway_morder_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   summarise(net_pi_mcaway_morder_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
   )
 
@@ -477,7 +481,7 @@ net_pi_mcaway_morder_wmed <- f605_mktble_df %>%
 # weighted median of rows, by order size, just market orders
 
 net_pi_mcaway_morder_size_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(order_size) %>%
   summarise(net_pi_mcaway_morder_size_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
   )
@@ -486,7 +490,7 @@ net_pi_mcaway_morder_size_wmed <- f605_mktble_df %>%
 # weighted median of rows, for S&P 500 members, just market orders
 
 net_pi_mcaway_morder_sp500_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == T) %>%
   summarise(net_pi_mcaway_morder_sp500_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
   )
@@ -494,7 +498,7 @@ net_pi_mcaway_morder_sp500_wmed <- f605_mktble_df %>%
 # weighted median of rows, for nyse_listings, just market orders
 
 net_pi_mcaway_morder_nyse_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_nyse = T) %>%
   summarise(net_pi_mcaway_morder_nyse_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
   )
@@ -502,7 +506,7 @@ net_pi_mcaway_morder_nyse_wmed <- f605_mktble_df %>%
 # weighted median of rows, for nasdaq_listings, just market orders
 
 net_pi_mcaway_morder_nasdaq_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_nasdaq = T) %>%
   summarise(net_pi_mcaway_morder_nasdaq_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
   )
@@ -530,14 +534,14 @@ net_pi_tbl <- net_pi_df %>%
 
 # weighted medians and other quantiles of net-pi on market orders, by order_size
 df_sz_499 <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr" , order_size == "100-499")
+  filter(order_type == order_type_filter , order_size == "100-499")
 
 df_sz_499_w <- t(data.frame(weighted.quantile(df_sz_499$net_pi_mcaway, df_sz_499$mcaway_exec_shrs)))
 rownames(df_sz_499_w) <- "100-499"
 colnames(df_sz_499_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 df_sz_1999 <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr" , order_size == "500-1999")
+  filter(order_type == order_type_filter , order_size == "500-1999")
 
 df_sz_1999_w <- t(data.frame(weighted.quantile(df_sz_1999$net_pi_mcaway, df_sz_1999$mcaway_exec_shrs)))
 rownames(df_sz_1999_w) <- "500-1999"
@@ -545,14 +549,14 @@ colnames(df_sz_1999_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 
 df_sz_4999 <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr" , order_size == "2000-4999")
+  filter(order_type == order_type_filter , order_size == "2000-4999")
 
 df_sz_4999_w <- t(data.frame(weighted.quantile(df_sz_4999$net_pi_mcaway, df_sz_4999$mcaway_exec_shrs)))
 rownames(df_sz_4999_w) <- "2000-4999"
 colnames(df_sz_4999_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 df_sz_5000 <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr" , order_size == "5000+")
+  filter(order_type == order_type_filter , order_size == "5000+")
 
 df_sz_5000_w <- t(data.frame(weighted.quantile(df_sz_5000$net_pi_mcaway, df_sz_5000$mcaway_exec_shrs)))
 rownames(df_sz_5000_w) <- "5000+"
@@ -565,7 +569,7 @@ df_sz_all_w$order_size <- ordered(rownames(df_sz_all_w), levels = c("100-499", "
 
 # weighted mean of net_pi on market orders, by order_size
 
-df_sz_all_wmean <-ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(order_size),
+df_sz_all_wmean <-ddply(f605_mktble_df[f605_mktble_df$order_type == order_type_filter,], .(order_size),
                         summarize,
                         wmean=round(weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE), 2))
 
@@ -624,14 +628,14 @@ f605_mktble_df <- f605_mktble_df %>%
 # A simple mean 'effective_over_quoted' for all stocks, all months
 
 effective_over_quoted_morder_mcaway_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   summarise(effective_over_quoted_morder_mcaway_mean = mean(effective_over_quoted_mcaway, na.rm = T)
   )
 
 # A simple mean 'effective_over_quoted' for all S&P 500 stocks, all months
 
 effective_over_quoted_sp_morder_mcaway_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == T) %>%
   summarise(effective_over_quoted_morder_mcaway_mean = mean(effective_over_quoted_mcaway, na.rm = T)
   )
@@ -639,7 +643,7 @@ effective_over_quoted_sp_morder_mcaway_mean <- f605_mktble_df %>%
 # Simple mean 'effective_over_quoted' by month
 
 effective_over_quoted_morder_mcaway_monthly_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(date) %>%
   summarise(effective_over_quoted_morder_mcaway_monthly_mean = mean(effective_over_quoted_mcaway, na.rm = T)
   )
@@ -656,7 +660,7 @@ effective_over_quoted_mcaway_type_mean <- f605_mktble_df %>%
 # Simple mean 'effective_over_quoted' by order size, all stocks, both order types, all months
 
 effective_over_quoted_morder_mcaway_size_mean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(order_size) %>%
   summarise(effective_over_quoted_morder_mcaway_size_mean = mean(effective_over_quoted_mcaway, na.rm = T)
   )
@@ -676,14 +680,14 @@ effective_over_quoted_morder_mcaway_size_mean <- f605_mktble_df %>%
 # (my variable 'avg_quoted_spread_mcaway') to adjust for difference between wholesalers' spreads.
 
 effective_over_quoted_morder_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   summarise(effective_over_quoted_morder_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway),na.rm = T)
   )
 
 # mean 'effective_over_quoted' by month, just market orders
 
 effective_over_quoted_morder_monthly_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(date) %>%
   summarise(effective_over_quoted_morder_monthly_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway),na.rm = T)
   )
@@ -692,7 +696,7 @@ effective_over_quoted_morder_monthly_mcaway_wmean <- f605_mktble_df %>%
 # mean 'effective_over_quoted' by order size, all stocks, all months, just market orders
 
 effective_over_quoted_morder_size_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(order_size) %>%
   summarise(effective_over_quoted_morder_size_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -700,7 +704,7 @@ effective_over_quoted_morder_size_mcaway_wmean <- f605_mktble_df %>%
 # If a holding company's form 605 filing reports on more than one market center:
 
 effective_over_quoted_morder_mcenter_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(market_center) %>%
   summarise(effective_over_quoted_morder_mcenter_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -709,7 +713,7 @@ effective_over_quoted_morder_mcenter_mcaway_wmean <- f605_mktble_df %>%
 # in S&P 500
 
 effective_over_quoted_morder_sp500_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == TRUE) %>%
   summarise(effective_over_quoted_morder_sp500_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -718,7 +722,7 @@ effective_over_quoted_morder_sp500_mcaway_wmean <- f605_mktble_df %>%
 # NOT in S&P 500
 
 effective_over_quoted_morder_notsp500_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == FALSE) %>%
   summarise(effective_over_quoted_morder_notsp500_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -726,7 +730,7 @@ effective_over_quoted_morder_notsp500_mcaway_wmean <- f605_mktble_df %>%
 # on nyse
 
 effective_over_quoted_morder_nyse_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_nyse == TRUE) %>%
   summarise(effective_over_quoted_morder_nyse_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -734,7 +738,7 @@ effective_over_quoted_morder_nyse_mcaway_wmean <- f605_mktble_df %>%
 # on nasdaq
 
 effective_over_quoted_morder_nasdaq_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_nasdaq == TRUE) %>%
   summarise(effective_over_quoted_morder_nasdaq_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -742,7 +746,7 @@ effective_over_quoted_morder_nasdaq_mcaway_wmean <- f605_mktble_df %>%
 # in S&P 500 and on nyse
 
 effective_over_quoted_morder_sp_nyse_mcaway_wmean <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == TRUE) %>%
   filter(on_nyse == TRUE) %>%
   summarise(effective_over_quoted_morder_sp_nyse_mcaway_wmean = weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
@@ -760,14 +764,14 @@ effective_over_quoted_morder_sp_nyse_mcaway_wmean <- f605_mktble_df %>%
 # where each row is weighted by its executed shares ('mcaway_exec_shrs', lines 133ff above)
 
 effective_over_quoted_morder_mcaway_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   summarise(effective_over_quoted_morder_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway),na.rm = T)
   )
 
 # median 'effective_over_quoted' by month, just market orders
 
 effective_over_quoted_morder_monthly_mcaway_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(date) %>%
   summarise(effective_over_quoted_morder_monthly_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway),na.rm = T)
   )
@@ -777,7 +781,7 @@ effective_over_quoted_morder_monthly_mcaway_wmed <- f605_mktble_df %>%
 # median 'effective_over_quoted' by order size, all stocks, all months, just market orders
 
 effective_over_quoted_morder_size_mcaway_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(order_size) %>%
   summarise(effective_over_quoted_morder_size_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -785,7 +789,7 @@ effective_over_quoted_morder_size_mcaway_wmed <- f605_mktble_df %>%
 # If a holding company's form 605 filing reports on more than one market center:
 
 effective_over_quoted_morder_mcenter_mcaway_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(market_center) %>%
   summarise(effective_over_quoted_morder_mcenter_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -794,7 +798,7 @@ effective_over_quoted_morder_mcenter_mcaway_wmed <- f605_mktble_df %>%
 # in S&P 500
 
 effective_over_quoted_morder_sp500_mcaway_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == TRUE) %>%
   summarise(effective_over_quoted_morder_sp500_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -802,7 +806,7 @@ effective_over_quoted_morder_sp500_mcaway_wmed <- f605_mktble_df %>%
 # NOT in S&P 500
 
 effective_over_quoted_morder_notsp500_mcaway_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(in_sp500 == FALSE) %>%
   summarise(effective_over_quoted_morder_notsp500_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -811,7 +815,7 @@ effective_over_quoted_morder_notsp500_mcaway_wmed <- f605_mktble_df %>%
 # on nyse
 
 effective_over_quoted_morder_nyse_mcaway_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_nyse == TRUE) %>%
   summarise(effective_over_quoted_morder_nyse_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -819,7 +823,7 @@ effective_over_quoted_morder_nyse_mcaway_wmed <- f605_mktble_df %>%
 # on nasdaq
 
 effective_over_quoted_morder_nasdaq_mcaway_wmed <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   filter(on_nasdaq == TRUE) %>%
   summarise(effective_over_quoted_morder_nasdaq_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
   )
@@ -854,14 +858,14 @@ f605_mktble_df <- f605_mktble_df %>%
 
 # weighted medians and other quantiles of net-pi on market orders, by order_size
 df_eoq_sz_499 <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr" , order_size == "100-499")
+  filter(order_type == order_type_filter , order_size == "100-499")
 
 df_eoq_sz_499_w <- t(data.frame(weighted.quantile(df_eoq_sz_499$effective_over_quoted_mcaway, df_eoq_sz_499$eoq_wgt, na.rm=T)))
 rownames(df_eoq_sz_499_w) <- "100-499"
 colnames(df_eoq_sz_499_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 df_eoq_sz_1999 <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr" , order_size == "500-1999")
+  filter(order_type == order_type_filter , order_size == "500-1999")
 
 df_eoq_sz_1999_w <- t(data.frame(weighted.quantile(df_eoq_sz_1999$effective_over_quoted_mcaway, df_eoq_sz_1999$eoq_wgt, na.rm=T)))
 rownames(df_eoq_sz_1999_w) <- "500-1999"
@@ -869,14 +873,14 @@ colnames(df_eoq_sz_1999_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 
 df_eoq_sz_4999 <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr" , order_size == "2000-4999")
+  filter(order_type == order_type_filter , order_size == "2000-4999")
 
 df_eoq_sz_4999_w <- t(data.frame(weighted.quantile(df_eoq_sz_4999$effective_over_quoted_mcaway, df_eoq_sz_4999$eoq_wgt, na.rm=T)))
 rownames(df_eoq_sz_4999_w) <- "2000-4999"
 colnames(df_eoq_sz_4999_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 df_eoq_sz_5000 <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr" , order_size == "5000+")
+  filter(order_type == order_type_filter , order_size == "5000+")
 
 df_eoq_sz_5000_w <- t(data.frame(weighted.quantile(df_eoq_sz_5000$effective_over_quoted_mcaway, df_eoq_sz_5000$eoq_wgt, na.rm=T)))
 rownames(df_eoq_sz_5000_w) <- "5000+"
@@ -889,7 +893,7 @@ df_eoq_sz_all_w$order_size <- ordered(rownames(df_eoq_sz_all_w), levels = c("100
 
 # weighted mean of net_pi on market orders, by order_size
 
-df_eoq_sz_all_wmean <-ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(order_size),
+df_eoq_sz_all_wmean <-ddply(f605_mktble_df[f605_mktble_df$order_type == order_type_filter,], .(order_size),
                             summarize,
                             wmean=round(weighted.mean(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm=TRUE), 2))
 
@@ -928,7 +932,7 @@ eoq_wmed_morders_sz_bxplt <- ggplot(df_eoq_sz_all_w, aes(x = order_size, ymin = 
 
 
 f605_morder_t_df <- f605_mktble_df %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   group_by(ticker, order_type) %>%
   summarise(mcaway_exec_shrs_t = sum(mcaway_exec_shrs),
             avg_effec_spread_t = weighted.mean(avg_effec_spread, mcaway_exec_shrs),
@@ -944,7 +948,7 @@ f605_morder_t_df <- f605_mktble_df %>%
 # Add that membership information, from the f605_mktble_df table.
 
 f605_mktble_member_df <- f605_mktble_df[, c(4, 5, 27, 29:30)] %>%
-  filter(order_type == "mkt_ordr") %>%
+  filter(order_type == order_type_filter) %>%
   unique(MARGIN = 1)
 
 f605_morder_ticker_df <- inner_join(f605_morder_t_df, f605_mktble_member_df, by = "ticker")
