@@ -27,7 +27,7 @@ library(devtools)
 ### Note: this assumes you copied the rule605 directory to C:/
  
 download.file("http://cran.r-project.org/src/contrib/Archive/Rcpp/Rcpp_0.11.3.tar.gz", "C:/rule605/Rcpp_0.11.3.tar.gz")
-install.packages("C:/rule605/Rcpp_0.11.3.tar.gz", repos = NULL, type = "source", INSTALL_opts = c('--no-lock'))
+install.packages("C:/rule605/Rcpp_0.11.3.tar.gz", repos = NULL, type = "source")
 
 ### --- bigvis ---
 devtools::install_github("hadley/bigvis")

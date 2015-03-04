@@ -11,8 +11,18 @@
 # set the working directory, for Windows or Mac
 os_name = Sys.info()[['sysname']]
 if(os_name == "Windows"){
+  # create some directories that aren't in the default repo 
+  dir.create("C:/rule605")
+  dir.create("C:/net_pi")
+  dir.create("C:/e_q")
+  dir.create("C:/rule605/analysis/results_data", recursive=TRUE)
   setwd("C:/rule605")
 }else if(os_name =="Darwin"){  # OS X
+  # create some directories that aren't in the default repo 
+  dir.create("~/rule605")
+  dir.create("~/net_pi")
+  dir.create("~/e_q")
+  dir.create("~/rule605/analysis/results_data", recursive=TRUE)  
   setwd("~/rule605")
 }else{                         # Linux
   stop("I'm a penguin.")
@@ -75,7 +85,6 @@ if(os_name == "Windows"){
 }else{                         # Linux
   stop("I'm a penguin.")
 }
-
 
 source("./analysis/form605_write_functions.R")
 
