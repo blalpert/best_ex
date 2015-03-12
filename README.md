@@ -60,7 +60,15 @@ But the real reason we're doing all this is to enable you to reproduce, correct 
 
 The real magic of this replication exercise comes from reproducing our analysis as it starts with raw data files and spits out the finished browser-readable report that will appear as the file **"Rule605\_report.html"** in the directory **"./rule605/analysis/"**. I've rewritten these scripts so that *they no longer require the good, but hard-to-obtain package _"big vis"_ *. Now, all needed packages should easily download from any "cran" repository of R packages.
 
+<<<<<<< HEAD
 In the directory **"./rule605/data/gather\_source"**, you'll find the file **"form605\_makefile.R"**. **If you're running the replication in RStudio** press the **Source** button in the upper-right corner of the Source window, to run the file **"form605\_makefile.R"**, where the script should rerun the entire data gathering and analysis process. It will overwrite the results files with the new calculations. You can repeat this step any time you like, to create updated results based on new Form 605 filings or any changes you make to the analytical scripts.
+=======
+In the directory **"./rule605/data/gather\_source"**, you'll find the two files **"install\_packages.R"** and **"form605\_makefile.R"**. **If you're running the replication for the first time, open the "install\_packages.R" file in RStudio** and press the **Source** button in the upper-right corner of the Source window, to download and install a useful R add-on package called **"bigvis"** which our code will use to calculate weighted medians and other measures with great speed. As of this writing, the bigvis package is not yet a part of the standard R repositories -- hence the extra step to install it. After you've installed the "bigvis" package once, you needn't run the installation script again, since the package will have become part of your R environment.
+
+If you have trouble compiling the bigvis package, it may be the result of your using too new a version of the required package "Rcpp" -- the two packages have fallen out of step, for the moment (as of March 2015). The big vis package needs rcpp version 0.11.3, which you can download from here http://dirk.eddelbuettel.com/code/rcpp/Rcpp_0.11.3.tar.gz and then tell R or Rstudio to install from your download directory. After you've done that, my "install\packages.R" script should work to install big vis.
+
+To run the replication, open and click the RStudio'Source' button to run the file **"form605\_makefile.R"**, where the script should rerun the entire data gathering and analysis process. It will overwrite the results files with the new calculations. You can repeat this step any time you like, to create updated results based on new Form 605 filings or any changes you make to the analytical scripts.
+>>>>>>> origin/master
 
 You can see the new results most easily if you then open the file **"rule605\_report.Rmd"** (in the directory **".rule605/analysis"**) and then press the **Knit HTML** button in the upper-leftish edge of the Source window. This will update the browser-readable **"Rule605\_report.html"** with your new calculations.
 
