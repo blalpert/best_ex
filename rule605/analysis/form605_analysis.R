@@ -14,7 +14,7 @@
 
 # Rewrote to use the wtd.quantile function of the Hmisc package,
 # instead of the using the erratically-maintained big vis package,
-# which had been a problem for folks get running. The Hmisc package
+# which had been a problem for folks to get running. The Hmisc package
 # is easy to get and well-maintained.
 
 # 16FEB2015 changes;
