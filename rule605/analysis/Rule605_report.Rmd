@@ -1,7 +1,7 @@
 ---
 title: "Rule 605 Analysis"
 author: "Bill Alpert, Barron's, william.alpert@barrons.com, 1.212.416.2742"
-date: "Friday, February 27, 2015"
+date: "Friday, March 12, 2015"
 output: html_document
 ---
 
@@ -18,8 +18,11 @@ output: html_document
 ```
 
 ```{r echo=FALSE}
-# Any package required by the script below is given here
-inst_pkgs = load_pkgs = c("plyr", "dplyr", "tidyr", "ggplot2", "magrittr", "xtable", "digest", "car", "bigvis")
+# Any package required by the script below is given here.
+# I stopped requiring the hard-to-get package "big vis",
+# now using instead functions from the Hmisc package.
+
+inst_pkgs = load_pkgs = c("plyr", "dplyr", "tidyr", "ggplot2", "magrittr", "xtable", "digest", "car", "Hmisc")
 
 # Check to see if the packages are already installed
 inst_pkgs = inst_pkgs[!(inst_pkgs %in% 
@@ -122,7 +125,7 @@ net_pi_mcaway_bot <- f605_mktble_df %>%
 
 net_pi_mcaway_morder_wmed <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
-  summarise(net_pi_mcaway_morder_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
+  summarise(net_pi_mcaway_morder_wmed = wtd.quantile(net_pi_mcaway, mcaway_exec_shrs, probs = 0.5)
   )
 
 # weighted median of rows, for S&P 500 members, just market orders
@@ -130,7 +133,7 @@ net_pi_mcaway_morder_wmed <- f605_mktble_df %>%
 net_pi_mcaway_morder_sp500_wmed <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(in_sp500 == T) %>%
-  summarise(net_pi_mcaway_morder_sp500_wmed = weighted.median(net_pi_mcaway, mcaway_exec_shrs)
+  summarise(net_pi_mcaway_morder_sp500_wmed = wtd.quantile(net_pi_mcaway, mcaway_exec_shrs, probs = 0.5)
   )
 
 # Ticker-level data frame, filtered for just S&P 500 stocks
@@ -149,12 +152,12 @@ f605_morder_ticker_sp500_df <- f605_morder_ticker_df %>%
 net_pi_mcaway_sp500_wmean_t <- weighted.mean(f605_morder_ticker_sp500_df$net_pi_mcaway_t, f605_morder_ticker_sp500_df$mcaway_exec_shrs_t, na.rm = T)
 
 # A weighted-median net_pi of ticker-level groupings... lines 548ff
-net_pi_mcaway_wmed_t <- weighted.median(f605_morder_ticker_df$net_pi_mcaway_t, f605_morder_ticker_df$mcaway_exec_shrs_t, na.rm = T)
+net_pi_mcaway_wmed_t <- wtd.quantile(f605_morder_ticker_df$net_pi_mcaway_t, f605_morder_ticker_df$mcaway_exec_shrs_t, probs = 0.5, na.rm = T)
 
 
 # What's the weighted-median, net-pi for tickers in the S&P 500 ?
 
-net_pi_mcaway_sp500_wmed_t <- weighted.median(f605_morder_ticker_sp500_df$net_pi_mcaway_t, f605_morder_ticker_sp500_df$mcaway_exec_shrs_t, na.rm = T)
+net_pi_mcaway_sp500_wmed_t <- wtd.quantile(f605_morder_ticker_sp500_df$net_pi_mcaway_t, f605_morder_ticker_sp500_df$mcaway_exec_shrs_t, probs = 0.5, na.rm = T)
 
 # EFFECTIVE OVER QUOTED
 
@@ -169,7 +172,7 @@ effective_over_quoted_morder_mcaway_wmean <- f605_mktble_df %>%
 # Weighted MEDIAN EoQ....lines 781ff
 effective_over_quoted_morder_mcaway_wmed <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
-  summarise(effective_over_quoted_morder_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway),na.rm = T)
+  summarise(effective_over_quoted_morder_mcaway_wmed = wtd.quantile(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), probs = 0.5, na.rm = T)
   )
 
 # Weighted MEAN EoQ, stocks in S&P 500... lines 748ff
@@ -193,7 +196,7 @@ effective_over_quoted_morder_notsp500_mcaway_wmean <- f605_mktble_df %>%
 effective_over_quoted_morder_sp500_mcaway_wmed <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(in_sp500 == TRUE) %>%
-  summarise(effective_over_quoted_morder_sp500_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
+  summarise(effective_over_quoted_morder_sp500_mcaway_wmed = wtd.quantile(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), probs = 0.5, na.rm = T)
   )
 
 # Weighted MEDIAN EoQ, NOT in S&P 500
@@ -201,7 +204,7 @@ effective_over_quoted_morder_sp500_mcaway_wmed <- f605_mktble_df %>%
 effective_over_quoted_morder_notsp500_mcaway_wmed <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(in_sp500 == FALSE) %>%
-  summarise(effective_over_quoted_morder_notsp500_mcaway_wmed = weighted.median(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), na.rm = T)
+  summarise(effective_over_quoted_morder_notsp500_mcaway_wmed = wtd.quantile(effective_over_quoted_mcaway, (mcaway_exec_shrs * avg_quoted_spread_mcaway), probs = 0.5, na.rm = T)
   )
 
 ```
@@ -218,7 +221,7 @@ Barron's is sharing these files as pieces of journalism, in an attempt to make o
 
 ## Introduction
 
-This document summarizes our analysis of Form 605 reports. The story that results from this analysis --- and lots of other reporting --- will probably use weighted means of the *net price-improvement* and the *effective-over-quoted* ratio to rank market makers and exchanges, and in turn, the brokers who route orders to them.  We're sharing these files with you so that you can see why I chose these measures and how I calculate them. The included raw data and and scripts should allow you to  *exactly* reproduce my analysis, using the free, open-source software that I describe in the included **"README"** file. The measures and graphics you see here are calculated from *your firm's* data.
+This document summarises our analysis of Form 605 reports. The story that results from this analysis --- and lots of other reporting --- will probably use weighted means of the *net price-improvement* and the *effective-over-quoted* ratio to rank market makers and exchanges, and in turn, the brokers who route orders to them.  We're sharing these files with you so that you can see why I chose these measures and how I calculate them. The included raw data and and scripts should allow you to  *exactly* reproduce my analysis, using the free, open-source software that I describe in the included **"README"** file. The measures and graphics you see here are calculated from *your firm's* data.
 
 I hope that you'll use these materials to alert me to errors and to re-analyze the data any way you like.
 
@@ -294,7 +297,7 @@ In addition to the columns from the Form 605s, I've added columns that note a st
 
 I've tried to name the columns in ways you'll understand, but if you are confused, contact me. The raw Form 605s use arcane labels to code for the size of orders, so I re-coded the levels of the *order size* variable as: "100-499", "500-1999", "200-4999" and "5000+". I re-coded the two levels that we're considering in the *order type* variable as: "mkt_ordr" and "mktbl_lmt_ordr".
 
-The row structure of the *f605_mktble_df* data frame reflects that of the Form 605, where each row summarizes the month's orders for a particular stock, with a new row for every combination of five order types and four order sizes-- these combinations which can generate up to 20 rows per ticker. Here are a few rows and columns from the data frame:
+The row structure of the *f605_mktble_df* data frame reflects that of the Form 605, where each row summarises the month's orders for a particular stock, with a new row for every combination of five order types and four order sizes-- these combinations which can generate up to 20 rows per ticker. Here are a few rows and columns from the data frame:
 
 ```{r,results='asis', echo=FALSE}
 library(xtable)
@@ -503,7 +506,7 @@ df_sp_1 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(in_sp500 == T)
 
-df_sp_1_w <- t(data.frame(weighted.quantile (df_sp_1$net_pi_mcaway, df_sp_1$mcaway_exec_shrs)))
+df_sp_1_w <- t(data.frame(wtd.quantile (df_sp_1$net_pi_mcaway, df_sp_1$mcaway_exec_shrs)))
 rownames(df_sp_1_w) <- "in_sp500"
 colnames(df_sp_1_w) <- c("0%", "25%", "50%", "75%", "100%")
 
@@ -511,7 +514,7 @@ df_sp_2 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(in_sp500 == F)
 
-df_sp_2_w <- t(data.frame(weighted.quantile (df_sp_2$net_pi_mcaway, df_sp_2$mcaway_exec_shrs)))
+df_sp_2_w <- t(data.frame(wtd.quantile (df_sp_2$net_pi_mcaway, df_sp_2$mcaway_exec_shrs)))
 rownames(df_sp_2_w) <- "not_sp500"
 colnames(df_sp_2_w) <- c("0%", "25%", "50%", "75%", "100%") 
 
@@ -524,7 +527,7 @@ df_sp_1_2_w$in_sp500 <- ordered(rownames(df_sp_1_2_w), levels = c("in_sp500", "n
 df_sp_1_2_wmean <-f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   group_by(in_sp500) %>%
-  summarize(wmean_sp500 = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
+  summarise(wmean_sp500 = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
 
 rownames(df_sp_1_2_wmean) <- c("not_sp500", "in_sp500")
 
@@ -555,7 +558,7 @@ df_r1000_1 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(in_r1000 == T)
 
-df_r1000_1_w <- t(data.frame(weighted.quantile (df_r1000_1$net_pi_mcaway, df_r1000_1$mcaway_exec_shrs)))
+df_r1000_1_w <- t(data.frame(wtd.quantile (df_r1000_1$net_pi_mcaway, df_r1000_1$mcaway_exec_shrs)))
 rownames(df_r1000_1_w) <- "in_r1000"
 colnames(df_r1000_1_w) <- c("0%", "25%", "50%", "75%", "100%")
 
@@ -563,7 +566,7 @@ df_r1000_2 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(in_r1000 == F)
 
-df_r1000_2_w <- t(data.frame(weighted.quantile (df_r1000_2$net_pi_mcaway, df_r1000_2$mcaway_exec_shrs)))
+df_r1000_2_w <- t(data.frame(wtd.quantile (df_r1000_2$net_pi_mcaway, df_r1000_2$mcaway_exec_shrs)))
 rownames(df_r1000_2_w) <- "not_r1000"
 colnames(df_r1000_2_w) <- c("0%", "25%", "50%", "75%", "100%") 
 
@@ -576,7 +579,7 @@ df_r1000_1_2_w$in_r1000 <- ordered(rownames(df_r1000_1_2_w), levels = c("in_r100
 df_r1000_1_2_wmean <-f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   group_by(in_r1000) %>%
-  summarize(wmean_r1000 = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
+  summarise(wmean_r1000 = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
 
 rownames(df_r1000_1_2_wmean) <- c("not_r1000", "in_r1000")
 
@@ -607,7 +610,7 @@ df_ny_1 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(on_nyse == T)
 
-df_ny_1_w <- t(data.frame(weighted.quantile (df_ny_1$net_pi_mcaway, df_ny_1$mcaway_exec_shrs)))
+df_ny_1_w <- t(data.frame(wtd.quantile (df_ny_1$net_pi_mcaway, df_ny_1$mcaway_exec_shrs)))
 rownames(df_ny_1_w) <- "on_nyse"
 colnames(df_ny_1_w) <- c("0%", "25%", "50%", "75%", "100%")
 
@@ -615,7 +618,7 @@ df_ny_2 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(on_nyse == F)
 
-df_ny_2_w <- t(data.frame(weighted.quantile (df_ny_2$net_pi_mcaway, df_ny_2$mcaway_exec_shrs)))
+df_ny_2_w <- t(data.frame(wtd.quantile (df_ny_2$net_pi_mcaway, df_ny_2$mcaway_exec_shrs)))
 rownames(df_ny_2_w) <- "not_nyse"
 colnames(df_ny_2_w) <- c("0%", "25%", "50%", "75%", "100%") 
 
@@ -628,7 +631,7 @@ df_ny_1_2_w$on_nyse <- ordered(rownames(df_ny_1_2_w), levels = c("on_nyse", "not
 df_ny_1_2_wmean <-f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   group_by(on_nyse) %>%
-  summarize(wmean_ny = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
+  summarise(wmean_ny = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
 
 rownames(df_ny_1_2_wmean) <- c("not_nyse", "on_nyse")
 
@@ -658,7 +661,7 @@ df_nq_1 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(on_nasdaq == T)
 
-df_nq_1_w <- t(data.frame(weighted.quantile (df_nq_1$net_pi_mcaway, df_nq_1$mcaway_exec_shrs)))
+df_nq_1_w <- t(data.frame(wtd.quantile (df_nq_1$net_pi_mcaway, df_nq_1$mcaway_exec_shrs)))
 rownames(df_nq_1_w) <- "on_nasdaq"
 colnames(df_nq_1_w) <- c("0%", "25%", "50%", "75%", "100%")
 
@@ -666,7 +669,7 @@ df_nq_2 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(on_nasdaq == F)
 
-df_nq_2_w <- t(data.frame(weighted.quantile (df_nq_2$net_pi_mcaway, df_nq_2$mcaway_exec_shrs)))
+df_nq_2_w <- t(data.frame(wtd.quantile (df_nq_2$net_pi_mcaway, df_nq_2$mcaway_exec_shrs)))
 rownames(df_nq_2_w) <- "not_nasdaq"
 colnames(df_nq_2_w) <- c("0%", "25%", "50%", "75%", "100%") 
 
@@ -679,7 +682,7 @@ df_nq_1_2_w$on_nasdaq <- ordered(rownames(df_nq_1_2_w), levels = c("on_nasdaq", 
 df_nq_1_2_wmean <-f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   group_by(on_nasdaq) %>%
-  summarize(wmean_nq = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
+  summarise(wmean_nq = weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE))
 
 rownames(df_nq_1_2_wmean) <- c("not_nasdaq", "on_nasdaq")
 
@@ -714,14 +717,14 @@ We can also compare the effects of order-size. The boxplots below show there are
 df_sz_499 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr" , order_size == "100-499")
 
-df_sz_499_w <- t(data.frame(weighted.quantile(df_sz_499$net_pi_mcaway, df_sz_499$mcaway_exec_shrs)))
+df_sz_499_w <- t(data.frame(wtd.quantile(df_sz_499$net_pi_mcaway, df_sz_499$mcaway_exec_shrs)))
 rownames(df_sz_499_w) <- "100-499"
 colnames(df_sz_499_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 df_sz_1999 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr" , order_size == "500-1999")
 
-df_sz_1999_w <- t(data.frame(weighted.quantile(df_sz_1999$net_pi_mcaway, df_sz_1999$mcaway_exec_shrs)))
+df_sz_1999_w <- t(data.frame(wtd.quantile(df_sz_1999$net_pi_mcaway, df_sz_1999$mcaway_exec_shrs)))
 rownames(df_sz_1999_w) <- "500-1999"
 colnames(df_sz_1999_w) <- c("0%", "25%", "50%", "75%", "100%")
 
@@ -729,14 +732,14 @@ colnames(df_sz_1999_w) <- c("0%", "25%", "50%", "75%", "100%")
 df_sz_4999 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr" , order_size == "2000-4999")
 
-df_sz_4999_w <- t(data.frame(weighted.quantile(df_sz_4999$net_pi_mcaway, df_sz_4999$mcaway_exec_shrs)))
+df_sz_4999_w <- t(data.frame(wtd.quantile(df_sz_4999$net_pi_mcaway, df_sz_4999$mcaway_exec_shrs)))
 rownames(df_sz_4999_w) <- "2000-4999"
 colnames(df_sz_4999_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 df_sz_5000 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr" , order_size == "5000+")
 
-df_sz_5000_w <- t(data.frame(weighted.quantile(df_sz_5000$net_pi_mcaway, df_sz_5000$mcaway_exec_shrs)))
+df_sz_5000_w <- t(data.frame(wtd.quantile(df_sz_5000$net_pi_mcaway, df_sz_5000$mcaway_exec_shrs)))
 rownames(df_sz_5000_w) <- "5000+"
 colnames(df_sz_5000_w) <- c("0%", "25%", "50%", "75%", "100%")
 
@@ -748,7 +751,7 @@ df_sz_all_w$order_size <- ordered(rownames(df_sz_all_w), levels = c("100-499", "
 # weighted mean of net_pi on market orders, by order_size
 
 df_sz_all_wmean <-ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(order_size),
-                        summarize, 
+                        summarise, 
                         wmean=round(weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE), 2))
 
 rownames(df_sz_all_wmean) <- c("100-499", "500-1999", "2000-4999", "5000+")
@@ -788,19 +791,19 @@ mc_wmean <-f605_mktble_df %>%
   summarise(mc_wmean = round(weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm = TRUE), 2))
   
 # df_mcenter_all_wmean  <- ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(market_center),
-#                         summarize, 
+#                         summarise, 
 #                         wmean=round(weighted.mean(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE), 2))
 
 mc_wmed <-f605_mktble_df %>%
   filter(order_type == "mkt_ordr") %>%
   filter(in_sp500 == TRUE) %>%
   group_by(market_center) %>%
-  summarise(mc_wmed = round(weighted.median(net_pi_mcaway, mcaway_exec_shrs, na.rm = TRUE), 2))
+  summarise(mc_wmed = round(wtd.quantile(net_pi_mcaway, mcaway_exec_shrs, probs = 0.5, na.rm = TRUE), 2))
 
 
 # df_mcenter_all_wmed <-ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(market_center),
-#                              summarize, 
-#                              wmedian=round(weighted.median(net_pi_mcaway, mcaway_exec_shrs, na.rm=TRUE), 2))
+#                              summarise, 
+#                              wmedian=round(wtd.quantile(net_pi_mcaway, mcaway_exec_shrs, probs = 0.5, na.rm=TRUE), 2))
 
 df_mcenter_all <- inner_join(mc_wmean , mc_wmed, by = "market_center")
 
@@ -948,14 +951,14 @@ f605_mktble_df <- f605_mktble_df %>%
 df_eoq_sz_499 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr" , order_size == "100-499")
 
-df_eoq_sz_499_w <- t(data.frame(weighted.quantile(df_eoq_sz_499$effective_over_quoted_mcaway, df_eoq_sz_499$eoq_wgt, na.rm=T)))
+df_eoq_sz_499_w <- t(data.frame(wtd.quantile(df_eoq_sz_499$effective_over_quoted_mcaway, df_eoq_sz_499$eoq_wgt, na.rm=T)))
 rownames(df_eoq_sz_499_w) <- "100-499"
 colnames(df_eoq_sz_499_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 df_eoq_sz_1999 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr" , order_size == "500-1999")
 
-df_eoq_sz_1999_w <- t(data.frame(weighted.quantile(df_eoq_sz_1999$effective_over_quoted_mcaway, df_eoq_sz_1999$eoq_wgt, na.rm=T)))
+df_eoq_sz_1999_w <- t(data.frame(wtd.quantile(df_eoq_sz_1999$effective_over_quoted_mcaway, df_eoq_sz_1999$eoq_wgt, na.rm=T)))
 rownames(df_eoq_sz_1999_w) <- "500-1999"
 colnames(df_eoq_sz_1999_w) <- c("0%", "25%", "50%", "75%", "100%")
 
@@ -963,14 +966,14 @@ colnames(df_eoq_sz_1999_w) <- c("0%", "25%", "50%", "75%", "100%")
 df_eoq_sz_4999 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr" , order_size == "2000-4999")
 
-df_eoq_sz_4999_w <- t(data.frame(weighted.quantile(df_eoq_sz_4999$effective_over_quoted_mcaway, df_eoq_sz_4999$eoq_wgt, na.rm=T)))
+df_eoq_sz_4999_w <- t(data.frame(wtd.quantile(df_eoq_sz_4999$effective_over_quoted_mcaway, df_eoq_sz_4999$eoq_wgt, na.rm=T)))
 rownames(df_eoq_sz_4999_w) <- "2000-4999"
 colnames(df_eoq_sz_4999_w) <- c("0%", "25%", "50%", "75%", "100%")
 
 df_eoq_sz_5000 <- f605_mktble_df %>%
   filter(order_type == "mkt_ordr" , order_size == "5000+")
 
-df_eoq_sz_5000_w <- t(data.frame(weighted.quantile(df_eoq_sz_5000$effective_over_quoted_mcaway, df_eoq_sz_5000$eoq_wgt, na.rm=T)))
+df_eoq_sz_5000_w <- t(data.frame(wtd.quantile(df_eoq_sz_5000$effective_over_quoted_mcaway, df_eoq_sz_5000$eoq_wgt, na.rm=T)))
 rownames(df_eoq_sz_5000_w) <- "5000+"
 colnames(df_eoq_sz_5000_w) <- c("0%", "25%", "50%", "75%", "100%")
 
@@ -982,7 +985,7 @@ df_eoq_sz_all_w$order_size <- ordered(rownames(df_eoq_sz_all_w), levels = c("100
 # weighted mean of net_pi on market orders, by order_size
 
 df_eoq_sz_all_wmean <-ddply(f605_mktble_df[f605_mktble_df$order_type == "mkt_ordr",], .(order_size),
-                        summarize, 
+                        summarise, 
                         wmean=round(weighted.mean(effective_over_quoted_mcaway, eoq_wgt, na.rm=TRUE), 2))
 
 rownames(df_eoq_sz_all_wmean) <- c("100-499", "500-1999", "2000-4999", "5000+")

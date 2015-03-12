@@ -2,8 +2,15 @@
 #' ----------
 #' title:  "write_functions file"
 #' author: "Bill Alpert, Barron's, 1.212.416.2742, william.alpert@barrons.com"
-#' date:   "last changed February 27, 2015"
+#' date:   "last changed March 12, 2015"
 #' ----------
+
+# Changes on 12MAR2015
+
+# Commented out the commands to store results in directories "\net_pi" and "\e_q"
+# which users would need to create on their drives. These stored results are useful only
+# when comparing firms to one another, over separate runs of these scripts using the
+# Rule 605 data from separate firms.
 
 
 # DISCLAIMER: Barron's is sharing these files as pieces of journalism, in an attempt to make our reporting more transparent and our research reproducible.  We wrote them with care, but Dow Jones provides them as is and makes no guarantees.
@@ -118,38 +125,38 @@ write.table(eoq_mcaway_wmean_size_df, "eoq_mcaway_wmean_size_df.csv", row.names 
 # ##########
 
 
-# save net-pi and effective-over-quoted measures for later use in brokers' Rule 606 analysis
-
-net_pi_filename <- paste0("net_pi_wmed_sp500_", MC_name)
-
-# net_pi_mcaway_morder_wmed_dftemp <- data.frame(c(net_pi_mcaway_morder_sp500_wmed))
-#
-# net_pi_mcaway_wmed_df <- reshape2::melt(net_pi_mcaway_wmed_dftemp)
-# net_pi_mcaway_wmed_df <- dplyr::mutate(net_pi_mcaway_wmed_df, MarketCenter = MC_name)
-# write.table(net_pi_mcaway_wmed_df, "net_pi_mcaway_wmed_df.csv", row.names = TRUE, col.names = NA, sep = ",")
-#
-
-os_name = Sys.info()[['sysname']]
-if(os_name == "Windows"){
-  setwd("C:/net_pi")
-}else if(os_name =="Darwin"){  # OS X
-  setwd("~/net_pi")
-}
-
-write.table(net_pi_mcaway_measrs_df, net_pi_filename, row.names = TRUE, col.names = NA, sep = ",")
-
-# now the e_q file
-
-e_q_filename <- paste0("e_q_", MC_name)
-
-os_name = Sys.info()[['sysname']]
-if(os_name == "Windows"){
-  setwd("C:/e_q")
-}else if(os_name =="Darwin"){  # OS X
-  setwd("~/e_q")
-}
-
-write.table(effec_over_quoted_measrs_df, e_q_filename, row.names = TRUE, col.names = NA, sep = ",")
+# # save net-pi and effective-over-quoted measures for later use in brokers' Rule 606 analysis
+# 
+# net_pi_filename <- paste0("net_pi_wmed_sp500_", MC_name)
+# 
+# # net_pi_mcaway_morder_wmed_dftemp <- data.frame(c(net_pi_mcaway_morder_sp500_wmed))
+# #
+# # net_pi_mcaway_wmed_df <- reshape2::melt(net_pi_mcaway_wmed_dftemp)
+# # net_pi_mcaway_wmed_df <- dplyr::mutate(net_pi_mcaway_wmed_df, MarketCenter = MC_name)
+# # write.table(net_pi_mcaway_wmed_df, "net_pi_mcaway_wmed_df.csv", row.names = TRUE, col.names = NA, sep = ",")
+# #
+# 
+# os_name = Sys.info()[['sysname']]
+# if(os_name == "Windows"){
+#   setwd("C:/net_pi")
+# }else if(os_name =="Darwin"){  # OS X
+#   setwd("~/net_pi")
+# }
+# 
+# write.table(net_pi_mcaway_measrs_df, net_pi_filename, row.names = TRUE, col.names = NA, sep = ",")
+# 
+# # now the e_q file
+# 
+# e_q_filename <- paste0("e_q_", MC_name)
+# 
+# os_name = Sys.info()[['sysname']]
+# if(os_name == "Windows"){
+#   setwd("C:/e_q")
+# }else if(os_name =="Darwin"){  # OS X
+#   setwd("~/e_q")
+# }
+# 
+# write.table(effec_over_quoted_measrs_df, e_q_filename, row.names = TRUE, col.names = NA, sep = ",")
 
 
 # reset the working directory, for Windows or Mac
